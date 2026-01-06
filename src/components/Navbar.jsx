@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HashLink } from 'react-router-hash-link';
 import { Menu, X, ShoppingCart } from 'lucide-react';
 
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -43,6 +44,7 @@ export default function Navbar() {
       <div className="flex items-center gap-4 md:gap-6 text-[#E8D6B3]">
         
         <div className="relative cursor-pointer hover:scale-110 transition-transform">
+          
           <ShoppingCart size={22} />
           <span className="absolute -top-2 -right-2 bg-orange-700 text-[10px] rounded-full h-4 w-4 flex items-center justify-center text-white font-bold">
             0
