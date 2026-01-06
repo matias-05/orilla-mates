@@ -16,7 +16,7 @@ export default function SectionInicio() {
         <HashLink 
           smooth 
           to="/#productos" 
-          className="bg-black text-white w-full sm:w-fit text-center px-10 py-4 md:py-3 rounded-full text-xs md:text-sm font-medium hover:bg-gray-800 transition-all tracking-widest cursor-pointer uppercase"
+          className="bg-black text-white w-full sm:w-fit text-center px-10 py-4 md:py-3 rounded-full text-xs md:text-sm font-medium hover:bg-gray-800 transition-all tracking-widest cursor-pointer "
         >
           Ver Productos
         </HashLink>
@@ -25,7 +25,7 @@ export default function SectionInicio() {
           <p className="text-base md:text-xl lg:text-2xl font-medium max-w-md leading-relaxed">
             Orillas mates, una orilla con muchos mates para comprar.
           </p>
-          <p className="text-[10px] md:text-sm font-regular tracking-[0.2em] uppercase">
+          <p className="text-[10px] md:text-sm font-regular tracking-[0.2em] ">
             Estamos en Paraná, Entre Ríos, Argentina.
           </p>
         </div>
@@ -33,7 +33,7 @@ export default function SectionInicio() {
 
       <div className="w-full md:w-1/2 h-[35vh] md:h-full order-1 md:order-2 shrink-0 md:shrink">
         <img 
-          src="/foto-inicio.png" 
+          src="/foto-inicio.webp" 
           alt="Mates Orilla"
           className="w-full h-full object-cover object-center"
         />

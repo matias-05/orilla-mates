@@ -12,7 +12,7 @@ export default function SectionSobre() {
 
         <div className="absolute inset-0 z-0 bg-black">
           <div 
-            className="absolute inset-0 bg-[url('/fondo-productos.png')] 
+            className="absolute inset-0 bg-[url('/fondo-productos.webp')] 
                        bg-center bg-no-repeat bg-cover 
                        opacity-50" 
             style={{ backgroundAttachment: 'fixed' }} 
@@ -31,7 +31,7 @@ export default function SectionSobre() {
 
         <div className="hidden lg:block shrink-0">
           <img 
-            src="/logo-orilla.png" 
+            src="/logo-orilla.webp" 
             alt="Orilla Mates Logo" 
             className="w-28 h-28 md:w-36 md:h-36 object-contain"
           />
@@ -49,7 +49,7 @@ export default function SectionSobre() {
 
         <div className="hidden lg:block shrink-0">
           <img 
-            src="/logo-orilla.png" 
+            src="/logo-orilla.webp" 
             alt="Orilla Mates Logo" 
             className="w-28 h-28 md:w-36 md:h-36 object-contain"
           />

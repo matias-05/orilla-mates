@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 
 const categorias = [
-  { id: 1, nombre: 'Termos', imagen: '/termos.png', path: '/productos/termos' },
-  { id: 2, nombre: 'Mates', imagen: '/mates.png', path: '/productos/mates' },
-  { id: 3, nombre: 'Bombillas', imagen: '/bombillas.png', path: '/productos/bombillas' },
-  { id: 4, nombre: 'Otros', imagen: '/otros.png', path: '/productos/otros' },
+  { id: 1, nombre: 'Termos', imagen: '/termos.webp', path: '/productos/termos' },
+  { id: 2, nombre: 'Mates', imagen: '/mates.webp', path: '/productos/mates' },
+  { id: 3, nombre: 'Bombillas', imagen: '/bombillas.webp', path: '/productos/bombillas' },
+  { id: 4, nombre: 'Otros', imagen: '/otros.webp', path: '/productos/otros' },
 ];
 
 export default function CardCategorias() {
