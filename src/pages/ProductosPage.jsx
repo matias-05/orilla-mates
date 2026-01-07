@@ -3,6 +3,7 @@ import { useParams, NavLink } from 'react-router-dom';
 import { ChevronDown, Search } from 'lucide-react';
 import CardProductos from '../components/CardProductos'; 
 
+
 export default function PaginaProductos() {
   const { categoria } = useParams(); 
   const [filtro, setFiltro] = useState('Todos');

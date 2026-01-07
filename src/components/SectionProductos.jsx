@@ -10,9 +10,9 @@ export default function Productos() {
       <div className="absolute inset-0 z-0 bg-black">
         <div 
           className="absolute inset-0 bg-[url('/fondo-productos.webp')] 
-                     bg-center bg-no-repeat bg-cover 
-                     opacity-50" 
-          style={{ backgroundAttachment: 'fixed' }} 
+                    bg-center bg-no-repeat bg-cover 
+                    opacity-50" 
+          style={{ backgroundAttachment: 'fixed' }}
         />
         <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
       </div>

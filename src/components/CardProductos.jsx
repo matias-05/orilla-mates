@@ -61,6 +61,7 @@ export default function CardProductos({ categoria, filtro }) {
                     <div className="bg-[#617A67] p-4">
                         <div className="aspect-square w-full overflow-hidden">
                             <img 
+                                loading="lazy"
                                 src={prod.imagen || '/logo-orilla.png'} 
                                 alt={prod.nombre} 
                                 className="w-full h-full object-cover"
