@@ -6,20 +6,24 @@ export default function Productos() {
       id="productos"
       className="
         relative w-full
-        min-h-[calc(100svh-80px)]
+        /* Cambiamos a 100dvh para un ajuste dinámico perfecto en mobile */
+        min-h-[calc(100dvh-80px)]
         flex flex-col items-center justify-center
-        py-12 px-4
+        /* Reducimos un poco el padding vertical en mobile para que quepa todo */
+        py-8 md:py-12 px-4
         font-quicksand
         overflow-hidden
+        bg-transparent
       "
     >
 
-      {/* Background */}
+      {/* Background (Mantenemos tu lógica de mobile y desktop) */}
       <div className="absolute inset-0 z-0 bg-black">
         <div 
           className="
             absolute inset-0
-            bg-[url('/fondo-productos.webp')]
+            bg-[url('/fondo-productos.webp')] 
+            md:bg-[url('/fondo-productos.webp')]
             bg-center bg-no-repeat bg-cover
             opacity-50
             bg-scroll md:bg-fixed
