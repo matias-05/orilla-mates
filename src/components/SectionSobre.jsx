@@ -6,8 +6,7 @@ export default function SectionSobre() {
       id="sobre-nosotros" 
       className="
         w-full 
-        /* Usamos 100dvh para que se ajuste perfecto al navegador del celular */
-        min-h-[calc(100dvh-80px)] 
+        h-[calc(100vh-80px)]
         flex flex-col 
         font-quicksand
       "
@@ -15,17 +14,13 @@ export default function SectionSobre() {
 
       <div className="relative flex-[1.5] w-full flex items-center justify-center overflow-hidden">
 
-        {/* Background */}
         <div className="absolute inset-0 z-0 bg-black">
           <div 
             className="
               absolute inset-0
-              /* Imagen optimizada para móvil y otra para desktop */
               bg-[url('/fondo-productos.webp')]
-              md:bg-[url('/fondo-productos.webp')]
               bg-center bg-no-repeat bg-cover
               opacity-50
-              /* Evitamos el zoom en mobile con bg-scroll */
               bg-scroll md:bg-fixed
             "
           />
@@ -38,7 +33,6 @@ export default function SectionSobre() {
         </h2>
       </div>
 
-      {/* Franja de información */}
       <div className="bg-[#2F4A2F] flex-1 flex flex-col md:flex-row items-center justify-center px-6 md:px-16 py-10 md:py-0 gap-8 md:gap-16 relative z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.3)]">
 
         <div className="hidden lg:block shrink-0">

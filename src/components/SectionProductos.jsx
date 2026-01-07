@@ -17,7 +17,6 @@ export default function Productos() {
       "
     >
 
-      {/* Background (Mantenemos tu lógica de mobile y desktop) */}
       <div className="absolute inset-0 z-0 bg-black">
         <div 
           className="
@@ -32,7 +31,6 @@ export default function Productos() {
         <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 w-full max-w-7xl flex flex-col items-center">
         <h2 className="font-belleza text-4xl md:text-5xl text-[#E8D6B3] text-center mb-10 md:mb-16 drop-shadow-lg">
           Nuestros Productos
