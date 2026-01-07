@@ -5,7 +5,7 @@ export default function SectionContacto() {
   const contacto = {
     email: "orillamates@gmail.com",
     instagram: "@orillamates.parana",
-    direccion: "Paraná, Entre Ríos, Argentina", // Ubicación en Paraná
+    direccion: "Paraná, Entre Ríos, Argentina", 
     whatsapp: import.meta.env.VITE_WHATSAPP_NUMBER, 
   };
 
@@ -14,7 +14,7 @@ export default function SectionContacto() {
       id="contacto" 
       className="bg-[#F2E4C9] min-h-[calc(100vh-80px)] flex flex-col font-quicksand"
     >
-      {/* --- PARTE SUPERIOR: AGRADECIMIENTO --- */}
+
       <div className="flex-grow flex flex-col items-center justify-center px-6 text-center py-12">
         <div className="relative mb-8">
           <div className="absolute inset-0 bg-[#8B5E3C] blur-3xl opacity-10 rounded-full"></div>
@@ -36,12 +36,10 @@ export default function SectionContacto() {
         <div className="w-16 h-1 bg-[#8B5E3C] mt-8 rounded-full opacity-40"></div>
       </div>
 
-      {/* --- PARTE INFERIOR: "FOOTER" DE CONTACTO --- */}
       <div className="bg-[#2F4A2F] w-full py-10 px-6 md:px-12">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             
-            {/* WhatsApp */}
             <a 
               href={`https://wa.me/${contacto.whatsapp}`} 
               target="_blank" 
@@ -57,7 +55,6 @@ export default function SectionContacto() {
               </div>
             </a>
 
-            {/* Instagram */}
             <a 
               href={`https://instagram.com/${contacto.instagram.replace('@', '')}`} 
               target="_blank" 
@@ -73,7 +70,6 @@ export default function SectionContacto() {
               </div>
             </a>
 
-            {/* Email */}
             <a 
               href={`mailto:${contacto.email}`} 
               className="flex items-center gap-4 group transition-all"
@@ -87,7 +83,6 @@ export default function SectionContacto() {
               </div>
             </a>
 
-            {/* Dirección */}
             <div className="flex items-center gap-4 group">
               <div className="p-3 bg-[#F2E4C9]/10 text-[#F2E4C9] rounded-xl">
                 <MapPin size={22} />
@@ -100,7 +95,6 @@ export default function SectionContacto() {
 
           </div>
 
-          {/* Copyright sutil */}
           <div className="mt-10 pt-6 border-t border-white/5 text-center">
             <p className="text-[#F2E4C9]/30 text-[10px] uppercase tracking-[0.4em]">
               © 2026 Orilla Mates Paraná 
