@@ -41,7 +41,7 @@ export default function CarritoLleno() {
         navigate('/checkout');
     } else {
         try {
-              const response = await fetch('https://tu-url-de-render.onrender.com/process_cash_order', {
+              const response = await fetch('https://orilla-mates-backend.onrender.com/process_cash_order', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ items: cart })
