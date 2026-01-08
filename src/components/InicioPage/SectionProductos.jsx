@@ -1,4 +1,4 @@
-import CardCategorias from "./CardCategorias";
+import CardCategorias from "../Cards/CardCategorias";
 
 export default function Productos() {
   return (
@@ -6,10 +6,8 @@ export default function Productos() {
       id="productos"
       className="
         relative w-full
-        /* Cambiamos a 100dvh para un ajuste dinámico perfecto en mobile */
         min-h-[calc(100dvh-80px)]
         flex flex-col items-center justify-center
-        /* Reducimos un poco el padding vertical en mobile para que quepa todo */
         py-8 md:py-12 px-4
         font-quicksand
         overflow-hidden

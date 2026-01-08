@@ -12,7 +12,7 @@ export default function SectionContacto() {
   return (
     <section 
       id="contacto" 
-      className="bg-[#F2E4C9] min-h-[calc(100vh-80px)] flex flex-col font-quicksand"
+      className="bg-[#F2E4C9] h-[calc(100vh-80px)] flex flex-col font-quicksand"
     >
 
       <div className="flex-grow flex flex-col items-center justify-center px-6 text-center py-12">
