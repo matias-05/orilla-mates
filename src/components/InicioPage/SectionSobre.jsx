@@ -45,7 +45,7 @@ export default function SectionSobre() {
 
         <div className="max-w-4xl text-center">
           <p className="text-[#E8D6B3] text-sm md:text-lg lg:text-xl leading-relaxed font-light tracking-wide">
-            Somos un emprendimiento de **Paraná, Entre Ríos**, apasionados por la cultura del mate. 
+            Somos un emprendimiento de <strong>Paraná, Entre Ríos</strong>, apasionados por la cultura del mate. 
             Buscamos unir la tradición artesanal con la calidad premium que cada cebador merece. 
             En Orilla Mates, cada producto cuenta una historia.
           </p>

@@ -52,13 +52,18 @@ export const Checkout = () => {
       console.log("Respuesta del servidor:", result);
 
       if (result.status === 'approved') {
-        clearCart();
-        
-        navigate('/compra-exitosa', { 
-            state: { 
-                paymentId: result.id 
-            } 
-        });
+          const itemsComprados = cart; 
+          const totalFinal = total;
+          
+          clearCart();
+          
+          navigate('/success', { 
+              state: { 
+                  paymentId: result.id,
+                  items: itemsComprados,
+                  total: totalFinal     
+              } 
+          });
       } else if (result.status === 'in_process') {
         clearCart(); 
         alert("⏳ El pago está pendiente de aprobación.");

@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { Trash2, Plus, Minus, ChevronLeft, AlertTriangle } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { Trash2, Plus, Minus, ChevronLeft, AlertTriangle, CreditCard, Banknote } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { Link } from 'react-router-dom';
 
 export default function CarritoLleno() {
-    const { cart, updateQuantity, removeItem } = useCart();
+    const { cart, updateQuantity, removeItem, clearCart } = useCart();
+    const navigate = useNavigate();
   
     const [showConfirm, setShowConfirm] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
+    const [metodoPago, setMetodoPago] = useState('mercadopago'); 
 
     const subtotal = cart.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
     const envio = 0; 
-    const total = subtotal + envio;
+    const totalFinal = subtotal + envio;
 
     const getColorBackground = (color) => {
         if (!color) return 'transparent';
@@ -33,6 +34,23 @@ export default function CarritoLleno() {
         removeItem(productToDelete.id, productToDelete.colorSeleccionado);
         setShowConfirm(false);
         setProductToDelete(null);
+    };
+
+    const handleFinalizarPedido = () => {
+        if (metodoPago === 'mercadopago') {
+            navigate('/checkout');
+        } else {
+
+            const datosParaTicket = {
+                paymentId: 'EFECTIVO-PENDIENTE',
+                items: [...cart],
+                total: totalFinal,
+                esEfectivo: true
+            };
+
+            clearCart(); 
+            navigate('/compra-exitosa', { state: datosParaTicket }); 
+        }
     };
     
     return (
@@ -121,6 +139,25 @@ export default function CarritoLleno() {
 
           <div className="bg-[#2F4A2F] p-8 rounded-3xl text-[#F2E4C9] shadow-2xl sticky top-24">
             <h3 className="font-belleza text-2xl mb-8 border-b border-white/10 pb-4">Resumen</h3>
+            
+            <div className="mb-8 space-y-3">
+                <p className="text-[10px] uppercase font-bold tracking-widest opacity-60 mb-4">Elegí cómo pagar</p>
+                <button 
+                    onClick={() => setMetodoPago('mercadopago')}
+                    className={`cursor-pointer w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${metodoPago === 'mercadopago' ? 'border-[#E8D6B3] bg-white/10' : 'border-white/10 hover:border-white/30'}`}
+                >
+                    <CreditCard size={18} />
+                    <span className="text-sm font-bold">Mercado Pago / Tarjeta</span>
+                </button>
+                <button 
+                    onClick={() => setMetodoPago('efectivo')}
+                    className={`cursor-pointer w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${metodoPago === 'efectivo' ? 'border-[#E8D6B3] bg-white/10' : 'border-white/10 hover:border-white/30'}`}
+                >
+                    <Banknote size={18} />
+                    <span className="text-sm font-bold">Efectivo</span>
+                </button>
+            </div>
+
             <div className="space-y-4 mb-8">
               <div className="flex justify-between opacity-80">
                 <span>Subtotal</span>
@@ -133,14 +170,17 @@ export default function CarritoLleno() {
               <div className="h-px bg-white/10 my-4"></div>
               <div className="flex justify-between items-end">
                 <span className="text-lg">Total</span>
-                <span className="text-3xl font-bold text-[#E8D6B3]">${total.toLocaleString()}</span>
+                <span className="text-3xl font-bold text-[#E8D6B3]">${totalFinal.toLocaleString()}</span>
               </div>
             </div>
-            <Link to="/checkout">
-              <button className="w-full bg-[#8B5E3C] hover:bg-[#a67148] text-[#F2E4C9] py-4 rounded-xl font-bold uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95">
+
+            <button 
+                onClick={handleFinalizarPedido}
+                className="cursor-pointer w-full bg-[#8B5E3C] hover:bg-[#a67148] text-[#F2E4C9] py-4 rounded-xl font-bold uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95"
+            >
                 Finalizar Compra
-              </button>
-            </Link>
+            </button>
+
             <p className="mt-6 text-[10px] text-center opacity-40 leading-relaxed uppercase tracking-wider">
               Envíos en el día dentro de la zona de Paraná, Entre Ríos.
             </p>
