@@ -61,7 +61,7 @@ export default function CarritoLleno() {
               };
 
               clearCart();
-              navigate('/success', { state: datosParaTicket });
+              navigate('/compra-exitosa', { state: datosParaTicket });
 
           } catch (error) {
               console.error("Error al procesar pedido en efectivo:", error);
