@@ -36,22 +36,39 @@ export default function CarritoLleno() {
         setProductToDelete(null);
     };
 
-    const handleFinalizarPedido = () => {
-        if (metodoPago === 'mercadopago') {
-            navigate('/checkout');
-        } else {
+    const handleFinalizarPedido = async () => {
+    if (metodoPago === 'mercadopago') {
+        navigate('/checkout');
+    } else {
+        try {
+              const response = await fetch('https://tu-url-de-render.onrender.com/process_cash_order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ items: cart })
+              });
 
-            const datosParaTicket = {
-                paymentId: 'EFECTIVO-PENDIENTE',
-                items: [...cart],
-                total: totalFinal,
-                esEfectivo: true
-            };
+              if (!response.ok) {
+                  const errorData = await response.json();
+                  alert(`Error: ${errorData.error}`); 
+                  return;
+              }
 
-            clearCart(); 
-            navigate('/compra-exitosa', { state: datosParaTicket }); 
-        }
-    };
+              const datosParaTicket = {
+                  paymentId: `EF-${Math.floor(Math.random() * 100000)}`, 
+                  items: [...cart],
+                  total: totalFinal,
+                  esEfectivo: true
+              };
+
+              clearCart();
+              navigate('/success', { state: datosParaTicket });
+
+          } catch (error) {
+              console.error("Error al procesar pedido en efectivo:", error);
+              alert("Hubo un problema al procesar tu pedido. Reintentá en unos momentos.");
+          }
+      }
+  };
     
     return (
         <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)] font-quicksand py-8 md:py-16 px-4 md:px-12 relative">
