@@ -13,7 +13,8 @@ const CompraExitosa = () => {
 
 
   const enviarWhatsApp = () => {
-    const textoBase = `¡Hola Orilla Mates! 👋 Acabo de realizar una compra.\n\n`;
+    const textoBase = `¡Hola Orilla Mates!  Acabo de realizar una compra.\n\n`;
+    
     const textoID = `*Orden:* #${paymentId}\n`;
 
     let detalleItems = `*Detalle:*\n`;
@@ -30,8 +31,8 @@ const CompraExitosa = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-[#fcf9f5] px-4 py-10">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
+    <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4 py-10">
+      <div className="max-w-md w-full bg-[white] shadow-xl  p-8 text-center border border-gray-100">
         
         <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
           <svg className="h-10 w-10 text-[#2F4A2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,18 +40,23 @@ const CompraExitosa = () => {
           </svg>
         </div>
 
-        <h2 className="text-3xl font-bold text-[#2F4A2F] mb-2 font-serif">¡Muchas Gracias!</h2>
-        <p className="text-gray-600 mb-6">Tu pedido ha sido procesado con éxito.</p>
+        <h2 className="text-3xl font-bold text-[#2F4A2F] mb-2 font-serif">¡ Muchas Gracias !</h2>
+        <p className="text-gray-600 mb-6">Para finalizar su pedido, porfavor envie el ticket por WhatsApp</p>
 
-        <button 
-          onClick={enviarWhatsApp}
-          className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-4 px-6 rounded-xl transition duration-300 flex items-center justify-center gap-3 shadow-lg mb-4"
+        <Link 
+          to="/" 
+          className="text-[#2F4A2F] font-semibold  text-sm"
         >
-          <MessageCircle size={24} />
-          Enviar Comprobante por WhatsApp
-        </button>
+          <button 
+            onClick={enviarWhatsApp}
+            className="cursor-pointer w-full bg-[#25D366] hover:bg-[#229F51] text-white font-bold py-4 px-6 transition duration-300 flex items-center justify-center gap-3 shadow-xl mb-6"
+          >
+            <MessageCircle size={24} />
+            Enviar Ticket por WhatsApp
+          </button>
+        </Link>
 
-        <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-100 text-left">
+        <div className="bg-gray-50 p-4 mb-6 border border-gray-100 text-left">
           <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2 font-bold">Resumen de compra</p>
           {items.map((item, index) => (
             <p key={index} className="text-sm text-gray-700">
@@ -62,12 +68,9 @@ const CompraExitosa = () => {
           </p>
         </div>
 
-        <Link 
-          to="/" 
-          className="text-[#2F4A2F] font-semibold hover:underline text-sm"
-        >
-          Volver a la tienda
-        </Link>
+        
+          
+        
       </div>
     </div>
   );

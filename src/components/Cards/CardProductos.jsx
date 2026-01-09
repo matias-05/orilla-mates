@@ -44,18 +44,18 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
     };
 
     return (
-        <div className={`flex flex-col shadow-xl transition-all duration-300 overflow-hidden h-full bg-[#2F4A2F] rounded-lg ${sinStock ? 'opacity-80 grayscale-[0.8] pointer-events-none' : 'hover:scale-[1.02]'}`}>
+        <div className={`flex flex-col shadow-xl transition-all duration-300 overflow-hidden h-full bg-[#2F4A2F]  ${sinStock ? 'opacity-80 grayscale-[0.8] pointer-events-none' : 'hover:scale-[1.02]'}`}>
 
             <div className="bg-[#617A67] p-4 relative">
                 {sinStock && (
                     <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-                        <span className="bg-[#8B5E3C] text-[#F2E4C9] text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] px-6 py-3 rounded-full border border-[#F2E4C9]/30 shadow-2xl animate-pulse">
+                        <span className="bg-[#8B5E3C] text-[#F2E4C9] text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] px-6 py-3  border border-[#F2E4C9]/30 shadow-2xl animate-pulse">
                             Agotado
                         </span>
                     </div>
                 )}
                 
-                <div className="aspect-square w-full overflow-hidden rounded-sm bg-white/5">
+                <div className="aspect-square w-full overflow-hidden  bg-white/5">
                     <img 
                         loading="lazy"
                         src={prod.imagen || '/logo-orilla.png'} 
@@ -115,7 +115,7 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
                 <button 
                     onClick={handleAgregar}
                     disabled={sinStock}
-                    className={`mt-auto py-3 px-8 rounded-lg self-center text-sm font-bold uppercase tracking-wider w-full shadow-lg transition-all ${
+                    className={`mt-auto py-3 px-8 cursor-pointer self-center text-sm font-bold uppercase tracking-wider w-full shadow-lg transition-all ${
                         sinStock 
                         ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
                         : 'bg-[#8B5E3C] text-[#F2E4C9] hover:bg-[#a67148] hover:shadow-xl active:scale-95'

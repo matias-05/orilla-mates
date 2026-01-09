@@ -10,7 +10,7 @@ export default function CardCategorias() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 w-full">
       {categorias.map((cat) => (
-        <Link key={cat.id} to={cat.path} className="group relative aspect-[3/4] overflow-hidden rounded-sm cursor-pointer shadow-2xl block">
+        <Link key={cat.id} to={cat.path} className="group relative aspect-[3/4] overflow-hidden  cursor-pointer shadow-2xl block">
 
           <img src={cat.imagen} alt={cat.nombre} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
 

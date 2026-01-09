@@ -83,10 +83,11 @@ export const Checkout = () => {
   }
 
   return (
-    <div className="max-w-[500px] mx-auto p-4 bg-white rounded-xl shadow-md my-10 border border-gray-200">
-      <h2 className="text-2xl text-center mb-6 font-bold text-[#2F4A2F]">
-        Total a pagar: ${amount}
-      </h2>
+    <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)]  flex flex-col items-center justify-center">
+      <div className="w-full max-w-md mx-auto p-4 bg-[#2F4A2F]  shadow-md my-10 border border-gray-200">
+        <h2 className="text-2xl text-center mb-6 font-medium text-[#E8D6B3] ">
+          Total a pagar: ${amount}
+        </h2>
 
       <Payment
         initialization={initialization}
@@ -99,6 +100,7 @@ export const Checkout = () => {
           visual: {
             style: {
               theme: 'default',
+              
             }
           }
         }}
@@ -107,5 +109,7 @@ export const Checkout = () => {
         onReady={() => console.log('Payment Brick listo')}
       />
     </div>
+    </section>
+    
   );
 };
