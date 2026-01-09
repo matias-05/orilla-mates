@@ -57,7 +57,7 @@ export const Checkout = () => {
           
           clearCart();
           
-          navigate('/success', { 
+          navigate('/compra-exitosa', { 
               state: { 
                   paymentId: result.id,
                   items: itemsComprados,
