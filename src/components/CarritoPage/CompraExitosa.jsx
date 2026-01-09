@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react'; 
 
 const CompraExitosa = () => {
+  const {  clearCart } = useCart();
   const location = useLocation();
   const { paymentId, items, total } = location.state || { 
     paymentId: 'N/A', 
@@ -28,6 +29,7 @@ const CompraExitosa = () => {
     const mensajeFinal = encodeURIComponent(textoBase + textoID + detalleItems + textoTotal + textoCierre);
     
     window.open(`https://wa.me/${TELEFONO_DUEÑO}?text=${mensajeFinal}`, '_blank');
+    clearCart();
   };
 
   return (

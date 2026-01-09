@@ -4,7 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useState } from 'react';
 export default function CardResumen() {
 
-    const { cart, clearCart } = useCart();
+    const { cart } = useCart();
     const navigate = useNavigate();
     const envio = 0; 
     const subtotal = cart.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
@@ -35,7 +35,7 @@ export default function CardResumen() {
                   esEfectivo: true
               };
 
-              clearCart();
+              
               navigate('/compra-exitosa', { state: datosParaTicket });
 
           } catch (error) {
