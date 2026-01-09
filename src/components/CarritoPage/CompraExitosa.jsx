@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { MessageCircle } from 'lucide-react'; 
+import { useCart } from '../../context/CartContext';
 
 const CompraExitosa = () => {
   const {  clearCart } = useCart();
