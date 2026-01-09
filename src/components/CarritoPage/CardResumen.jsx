@@ -11,39 +11,19 @@ export default function CardResumen() {
     const totalFinal = subtotal + envio;
     const [metodoPago, setMetodoPago] = useState('mercadopago'); 
 
-    const handleFinalizarPedido = async () => {
+    const handleFinalizarPedido = () => {
     if (metodoPago === 'mercadopago') {
         navigate('/checkout');
     } else {
-    try {
-        const response = await fetch('https://orilla-mates-backend.onrender.com/process_cash_order', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ items: cart })
-              });
-
-              if (!response.ok) {
-                  const errorData = await response.json();
-                  alert(`Error: ${errorData.error}`); 
-                  return;
-              }
-
-              const datosParaTicket = {
-                  paymentId: `EF-${Math.floor(Math.random() * 100000)}`, 
-                  items: [...cart],
-                  total: totalFinal,
-                  esEfectivo: true
-              };
-
-              
-              navigate('/compra-exitosa', { state: datosParaTicket });
-
-          } catch (error) {
-              console.error("Error al procesar pedido en efectivo:", error);
-              alert("Hubo un problema al procesar tu pedido. Reintentá en unos momentos.");
-          }
-      }
-  };
+        const datosParaTicket = {
+            paymentId: `EF-${Math.floor(Math.random() * 100000)}`, 
+            items: [...cart],
+            total: totalFinal,
+            esEfectivo: true 
+        };
+        navigate('/compra-exitosa', { state: datosParaTicket });
+    }
+};
 
 
     return (

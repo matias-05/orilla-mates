@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { Payment } from '@mercadopago/sdk-react';
 import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate, Link } from 'react-router-dom'; 
+import { ShoppingBag, ArrowLeft } from 'lucide-react';
 
 export const Checkout = () => {
   const { cart, total, clearCart } = useCart();
@@ -55,6 +56,7 @@ export const Checkout = () => {
           const itemsComprados = cart; 
           const totalFinal = total;
           
+          
           clearCart();
           
           navigate('/compra-exitosa', { 
@@ -79,8 +81,26 @@ export const Checkout = () => {
   };
 
   if (!initialization) {
-    return <div className="text-center p-10 font-bold">Cargando pago... (Asegurate de tener productos en el carrito)</div>;
-  }
+  return (
+      <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4">
+        <div className="max-w-md w-full bg-[#2F4A2F] p-10 text-center shadow-2xl border border-[#E8D6B3]/20">
+          <ShoppingBag size={48} className="text-[#E8D6B3] mx-auto mb-6 opacity-50" />
+          <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest uppercase mb-4">
+            No hay productos
+          </h2>
+          <p className="text-[#E8D6B3]/60 text-xs tracking-widest uppercase mb-8 leading-relaxed">
+            Parece que no hay una compra activa para mostrar en este momento.
+          </p>
+          <Link 
+            to="/#productos" 
+            className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
+          >
+            <ArrowLeft size={14} /> Volver a la tienda
+          </Link>
+        </div>
+      </div>
+    );
+}
 
   return (
     <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)]  flex flex-col items-center justify-center">

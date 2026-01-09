@@ -1,79 +1,145 @@
+import {  useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MessageCircle } from 'lucide-react'; 
+import { MessageCircle, Check, ShoppingBag, ArrowLeft, Loader2 } from 'lucide-react'; 
 import { useCart } from '../../context/CartContext';
 
 const CompraExitosa = () => {
-  const {  clearCart } = useCart();
+  const { clearCart, cartCount } = useCart();
   const location = useLocation();
-  const { paymentId, items, total } = location.state || { 
-    paymentId: 'N/A', 
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const { paymentId, items, total, esEfectivo } = location.state || { 
+    paymentId: null, 
     items: [], 
-    total: 0 
+    total: 0,
+    esEfectivo: false
   };
 
   const TELEFONO_DUEÑO = import.meta.env.VITE_TELEFONO_DUENO;
 
 
-  const enviarWhatsApp = () => {
-    const textoBase = `¡Hola Orilla Mates!  Acabo de realizar una compra.\n\n`;
-    
-    const textoID = `*Orden:* #${paymentId}\n`;
+  if (cartCount <= 0) {
+    return (
+      <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4">
+        <div className="max-w-md w-full bg-[#2F4A2F] p-10 text-center shadow-2xl border border-[#E8D6B3]/20">
+          <ShoppingBag size={48} className="text-[#E8D6B3] mx-auto mb-6 opacity-50" />
+          <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest  mb-4">
+            Haz Finalizado tu Compra
+          </h2>
+          
+          <Link 
+            to="/#productos" 
+            className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
+          >
+            <ArrowLeft size={14} /> Volver al Inicio
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-    let detalleItems = `*Detalle:*\n`;
-    items.forEach(item => {
-      detalleItems += `- ${item.nombre} (${item.colorSeleccionado}) x${item.cantidad}\n`;
-    });
+  const enviarWhatsApp = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
 
-    const textoTotal = `\n*Total:* $${total}`;
-    const textoCierre = `\n\nQuedo a la espera para coordinar el envío. Gracias!`;
+    try {
+      if (esEfectivo) {
+        const response = await fetch('https://orilla-mates-backend.onrender.com/process_cash_order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: items }) 
+        });
 
-    const mensajeFinal = encodeURIComponent(textoBase + textoID + detalleItems + textoTotal + textoCierre);
-    
-    window.open(`https://wa.me/${TELEFONO_DUEÑO}?text=${mensajeFinal}`, '_blank');
-    clearCart();
+        if (!response.ok) {
+          throw new Error("Error al procesar el stock");
+        }
+      }
+
+      const textoBase = `¡Hola Orilla Mates! Acabo de realizar una compra.\n\n`;
+      const textoID = `*Orden:* #${paymentId}\n`;
+      let detalleItems = `*Detalle:*\n`;
+      items.forEach(item => {
+        detalleItems += `- ${item.nombre} (${item.colorSeleccionado}) x${item.cantidad}\n`;
+      });
+      const textoTotal = `\n*Total:* $${total}`;
+      const mensajeFinal = encodeURIComponent(textoBase + textoID + detalleItems + textoTotal + `\n\nQuedo a la espera para coordinar. Gracias!`);
+      
+      window.open(`https://wa.me/${TELEFONO_DUEÑO}?text=${mensajeFinal}`, '_blank');
+      
+      clearCart();
+
+    } catch (error) {
+      console.error("Error al finalizar pedido:", error);
+      alert("Hubo un problema al procesar el stock. Por favor, intenta enviar nuevamente.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4 py-10">
-      <div className="max-w-md w-full bg-[white] shadow-xl  p-8 text-center border border-gray-100">
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4 py-12">
+      <div className="max-w-md w-full bg-white shadow-2xl p-0 border border-[#2F4A2F]/10">
         
-        <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
-          <svg className="h-10 w-10 text-[#2F4A2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-
-        <h2 className="text-3xl font-bold text-[#2F4A2F] mb-2 font-serif">¡ Muchas Gracias !</h2>
-        <p className="text-gray-600 mb-6">Para finalizar su pedido, porfavor envie el ticket por WhatsApp</p>
-
-        <Link 
-          to="/" 
-          className="text-[#2F4A2F] font-semibold  text-sm"
-        >
-          <button 
-            onClick={enviarWhatsApp}
-            className="cursor-pointer w-full bg-[#25D366] hover:bg-[#229F51] text-white font-bold py-4 px-6 transition duration-300 flex items-center justify-center gap-3 shadow-xl mb-6"
-          >
-            <MessageCircle size={24} />
-            Enviar Ticket por WhatsApp
-          </button>
-        </Link>
-
-        <div className="bg-gray-50 p-4 mb-6 border border-gray-100 text-left">
-          <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2 font-bold">Resumen de compra</p>
-          {items.map((item, index) => (
-            <p key={index} className="text-sm text-gray-700">
-              {item.cantidad}x {item.nombre} <span className="text-gray-400">({item.colorSeleccionado})</span>
-            </p>
-          ))}
-          <p className="border-t border-gray-200 mt-2 pt-2 font-bold text-[#2F4A2F]">
-            Total: ${total}
+        <div className="bg-[#2F4A2F] p-8 text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 bg-[#E8D6B3]/10 border border-[#E8D6B3]/30 mb-6">
+            <Check className="h-8 w-8 text-[#E8D6B3]" strokeWidth={3} />
+          </div>
+          <h2 className="font-belleza text-3xl text-[#E8D6B3] tracking-[0.2em] mb-2">
+            ¡Muchas Gracias!
+          </h2>
+          <p className="text-[#E8D6B3]/60 text-[10px] tracking-[0.2em] uppercase">
+            Pedido realizado con éxito
           </p>
         </div>
 
-        
-          
-        
+        <div className="p-8">
+          <p className="text-[#2F4A2F] text-l text-center mb-8 leading-relaxed tracking-wider">
+            Para finalizar su pedido, <br />
+            por favor envíe el ticket por WhatsApp
+          </p>
+
+          <button 
+            onClick={enviarWhatsApp}
+            disabled={isProcessing}
+            className={`cursor-pointer w-full bg-[#25D366] hover:bg-[#1eb956] text-white font-bold py-5 px-6 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg active:scale-95 mb-8 ${isProcessing ? 'opacity-70' : ''}`}
+          >
+            {isProcessing ? (
+              <Loader2 className="animate-spin" size={22} />
+            ) : (
+              <MessageCircle size={22} />
+            )}
+            <span className="text-[11px] tracking-[0.2em]">
+              {isProcessing ? 'PROCESANDO...' : 'Enviar Ticket'}
+            </span>
+          </button>
+
+          <div className="bg-[#F8F5F0] p-6 border-l-4 border-[#2F4A2F]">
+            <p className="text-[9px] uppercase tracking-[0.3em] text-[#2F4A2F]/40 mb-4 font-black">
+              Resumen de la Orden {paymentId ? `#${paymentId.toString().slice(-6)}` : ''}
+            </p>
+            
+            <div className="space-y-3 mb-4">
+              {items.map((item, index) => (
+                <div key={index} className="flex justify-between items-start">
+                  <p className="text-[11px] text-[#2F4A2F] uppercase tracking-wide">
+                    <span className="font-bold">{item.cantidad}x</span> {item.nombre} 
+                    <span className="block text-[9px] opacity-50">{item.colorSeleccionado}</span>
+                  </p>
+                  <p className="text-[11px] font-bold text-[#2F4A2F]">
+                    ${(item.precio * item.cantidad).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-[#2F4A2F]/10 mt-4 pt-4 flex justify-between items-center">
+              <span className="font-belleza text-lg text-[#2F4A2F] tracking-widest uppercase">Total</span>
+              <span className="text-xl font-bold text-[#2F4A2F] font-belleza">
+                ${total.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

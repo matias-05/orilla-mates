@@ -79,7 +79,6 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]); 
-
   };
 
   const cartCount = useMemo(() => {
