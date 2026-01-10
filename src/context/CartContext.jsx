@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 
 const CartContext = createContext(null);
 
@@ -28,7 +29,21 @@ export const CartProvider = ({ children }) => {
 
       if (existingItem) {
         if (existingItem.cantidad >= stockDisponible) {
-          alert(`Lo sentimos, solo hay ${stockDisponible} unidades disponibles en color ${product.colorSeleccionado}.`);
+          toast.error(`Lo sentimos, solo hay ${stockDisponible} unidades disponibles en color ${product.colorSeleccionado}.`, {
+            style: { 
+                background: '#ce2a2a', 
+                color: '#E8D6B3', 
+                borderRadius: 0, 
+                // Flexbox para centrado total
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',    // Centrado horizontal
+                justifyContent: 'center', // Centrado vertical
+                textAlign: 'center',      // Alineación de las líneas de texto
+                minHeight: '80px',        // Altura mínima para asegurar espacio de centrado
+                border: '1px solid #E8D6B333', // Opcional: un borde sutil para definir más el cuadrado
+            },
+            });
           return prevCart;
         }
 
@@ -55,7 +70,21 @@ export const CartProvider = ({ children }) => {
           const nuevaCantidad = item.cantidad + amount;
 
           if (amount > 0 && nuevaCantidad > stockDisponible) {
-            alert(`Límite de stock alcanzado para color ${color}`);
+            toast.error(`Límite de stock alcanzado para color ${color}`, {
+            style: { 
+                background: '#ce2a2a', 
+                color: '#E8D6B3', 
+                borderRadius: 0, 
+                // Flexbox para centrado total
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',    // Centrado horizontal
+                justifyContent: 'center', // Centrado vertical
+                textAlign: 'center',      // Alineación de las líneas de texto
+                minHeight: '80px',        // Altura mínima para asegurar espacio de centrado
+                border: '1px solid #E8D6B333', // Opcional: un borde sutil para definir más el cuadrado
+            },
+            });
             return item;
           }
 

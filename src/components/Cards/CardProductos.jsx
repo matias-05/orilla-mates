@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useCart } from '../../context/CartContext';
+import { toast } from 'sonner';
 
 function ProductoItem({ prod, addToCart, getColorBackground }) {
 
@@ -33,7 +34,21 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
 
         const stockActual = stockDelColorSeleccionado();
         if (stockActual <= 0) {
-            alert(`No hay stock disponible para el color ${colorElegido}`);
+            toast.error(`No hay stock disponible para el color ${colorElegido}`, {
+            style: { 
+                background: '#ce2a2a', 
+                color: '#E8D6B3', 
+                borderRadius: 0, 
+                // Flexbox para centrado total
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',    // Centrado horizontal
+                justifyContent: 'center', // Centrado vertical
+                textAlign: 'center',      // Alineación de las líneas de texto
+                minHeight: '80px',        // Altura mínima para asegurar espacio de centrado
+                border: '1px solid #E8D6B333', // Opcional: un borde sutil para definir más el cuadrado
+            },
+            });
             return;
         }
 

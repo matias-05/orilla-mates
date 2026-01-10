@@ -44,7 +44,9 @@ export default function CardProdInCart({ item, setProductToDelete, setShowConfir
           </div>
         )}
 
-        <p className="text-[#E8D6B3] text-lg mt-1  ">${item.precio.toLocaleString()}</p>
+        <p className="text-[#E8D6B3] text-lg mt-1 tracking-widest font-belleza">
+          ${(item.precio * item.cantidad).toLocaleString()}
+        </p>
         
         <div className="flex items-center gap-3 mt-4 md:hidden">
           <div className="flex items-center border border-[#2F4A2F]/20 bg-[#F2E4C9] shadow-inner overflow-hidden">

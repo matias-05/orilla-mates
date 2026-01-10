@@ -1,12 +1,14 @@
-import {  useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MessageCircle, Check, ShoppingBag, ArrowLeft, Loader2 } from 'lucide-react'; 
 import { useCart } from '../../context/CartContext';
+import { toast } from 'sonner';
 
 const CompraExitosa = () => {
-  const { clearCart, cartCount } = useCart();
+  const { clearCart } = useCart();
   const location = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [ticketEnviado, setTicketEnviado] = useState(false);
   
   const { paymentId, items, total, esEfectivo } = location.state || { 
     paymentId: null, 
@@ -17,16 +19,24 @@ const CompraExitosa = () => {
 
   const TELEFONO_DUEÑO = import.meta.env.VITE_TELEFONO_DUENO;
 
+  const hayDatosDeCompra = useMemo(() => {
+    return paymentId !== null && items.length > 0;
+  }, [paymentId, items]);
 
-  if (cartCount <= 0) {
+  // Si no hay datos (porque se limpió el historial) o si ya se envió en esta sesión
+  if (!hayDatosDeCompra || ticketEnviado) {
     return (
       <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4">
         <div className="max-w-md w-full bg-[#2F4A2F] p-10 text-center shadow-2xl border border-[#E8D6B3]/20">
           <ShoppingBag size={48} className="text-[#E8D6B3] mx-auto mb-6 opacity-50" />
-          <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest  mb-4">
-            Haz Finalizado tu Compra
+          <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest mb-4 uppercase">
+            {ticketEnviado ? '¡Pedido Finalizado!' : 'No hay productos'}
           </h2>
-          
+          <p className="text-[#E8D6B3]/60 text-xs tracking-widest uppercase mb-8 leading-relaxed text-center">
+            {ticketEnviado 
+              ? 'Gracias por elegir Orilla Mates. El ticket ha sido generado correctamente.' 
+              : 'Parece que no hay una compra activa para mostrar en este momento.'}
+          </p>
           <Link 
             to="/#productos" 
             className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
@@ -49,10 +59,7 @@ const CompraExitosa = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ items: items }) 
         });
-
-        if (!response.ok) {
-          throw new Error("Error al procesar el stock");
-        }
+        if (!response.ok) throw new Error("Error al procesar el stock");
       }
 
       const textoBase = `¡Hola Orilla Mates! Acabo de realizar una compra.\n\n`;
@@ -66,11 +73,17 @@ const CompraExitosa = () => {
       
       window.open(`https://wa.me/${TELEFONO_DUEÑO}?text=${mensajeFinal}`, '_blank');
       
+      // --- LÓGICA DE CIERRE DEFINITIVO ---
       clearCart();
+      setTicketEnviado(true);
+      
+      // ESTA LÍNEA ES LA MAGIA: Borra el 'state' de la URL en el historial del navegador.
+      // Así, si el usuario navega hacia adelante, location.state será null.
+      window.history.replaceState({}, document.title);
 
     } catch (error) {
-      console.error("Error al finalizar pedido:", error);
-      alert("Hubo un problema al procesar el stock. Por favor, intenta enviar nuevamente.");
+      console.error("Error:", error);
+      toast.error("Error al procesar el pedido.");
     } finally {
       setIsProcessing(false);
     }
@@ -79,12 +92,11 @@ const CompraExitosa = () => {
   return (
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4 py-12">
       <div className="max-w-md w-full bg-white shadow-2xl p-0 border border-[#2F4A2F]/10">
-        
         <div className="bg-[#2F4A2F] p-8 text-center">
           <div className="mx-auto flex items-center justify-center h-16 w-16 bg-[#E8D6B3]/10 border border-[#E8D6B3]/30 mb-6">
             <Check className="h-8 w-8 text-[#E8D6B3]" strokeWidth={3} />
           </div>
-          <h2 className="font-belleza text-3xl text-[#E8D6B3] tracking-[0.2em] mb-2">
+          <h2 className="font-belleza text-3xl text-[#E8D6B3] tracking-[0.2em] mb-2 uppercase">
             ¡Muchas Gracias!
           </h2>
           <p className="text-[#E8D6B3]/60 text-[10px] tracking-[0.2em] uppercase">
@@ -117,11 +129,10 @@ const CompraExitosa = () => {
             <p className="text-[9px] uppercase tracking-[0.3em] text-[#2F4A2F]/40 mb-4 font-black">
               Resumen de la Orden {paymentId ? `#${paymentId.toString().slice(-6)}` : ''}
             </p>
-            
             <div className="space-y-3 mb-4">
               {items.map((item, index) => (
                 <div key={index} className="flex justify-between items-start">
-                  <p className="text-[11px] text-[#2F4A2F] uppercase tracking-wide">
+                  <p className="text-[11px] text-[#2F4A2F] uppercase tracking-wide text-left">
                     <span className="font-bold">{item.cantidad}x</span> {item.nombre} 
                     <span className="block text-[9px] opacity-50">{item.colorSeleccionado}</span>
                   </p>
@@ -131,7 +142,6 @@ const CompraExitosa = () => {
                 </div>
               ))}
             </div>
-
             <div className="border-t border-[#2F4A2F]/10 mt-4 pt-4 flex justify-between items-center">
               <span className="font-belleza text-lg text-[#2F4A2F] tracking-widest uppercase">Total</span>
               <span className="text-xl font-bold text-[#2F4A2F] font-belleza">
@@ -139,6 +149,13 @@ const CompraExitosa = () => {
               </span>
             </div>
           </div>
+
+          <Link 
+            to="/" 
+            className="mt-8 inline-flex items-center justify-center gap-2 w-full bg-[#E8D6B3] text-[#2F4A2F] py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-[#d4c19d] transition-colors shadow-md"
+          >
+            <ArrowLeft size={14} /> Volver Al Inicio
+          </Link>
         </div>
       </div>
     </div>

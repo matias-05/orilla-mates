@@ -57,7 +57,6 @@ export const Checkout = () => {
           const totalFinal = total;
           
           
-          clearCart();
           
           navigate('/compra-exitosa', { 
               state: { 
@@ -66,6 +65,8 @@ export const Checkout = () => {
                   total: totalFinal     
               } 
           });
+          clearCart();
+          
       } else if (result.status === 'in_process') {
         clearCart(); 
         alert("⏳ El pago está pendiente de aprobación.");
@@ -95,7 +96,7 @@ export const Checkout = () => {
             to="/#productos" 
             className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
           >
-            <ArrowLeft size={14} /> Volver a la tienda
+            <ArrowLeft size={14} /> Volver al inicio
           </Link>
         </div>
       </div>
