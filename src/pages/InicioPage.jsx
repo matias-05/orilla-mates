@@ -1,7 +1,7 @@
-import SectionInicio from '../components/InicioPage/SectionInicio';
-import SectionProductos from '../components/InicioPage/SectionProductos'; 
-import SectionSobre from '../components/InicioPage/SectionSobre';
-import SectionContacto from '../components/InicioPage/SectionContacto';
+import SectionInicio from "../components/InicioPage/SectionInicio";
+import SectionProductos from "../components/InicioPage/SectionProductos";
+import SectionSobre from "../components/InicioPage/SectionSobre";
+import SectionContacto from "../components/InicioPage/SectionContacto";
 
 export default function Inicio() {
   return (
@@ -11,6 +11,5 @@ export default function Inicio() {
       <SectionSobre />
       <SectionContacto />
     </div>
-  
   );
 }

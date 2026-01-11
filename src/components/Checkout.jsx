@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
-import { Payment } from '@mercadopago/sdk-react';
-import { useCart } from '../context/CartContext';
-import { useNavigate, Link } from 'react-router-dom'; 
-import { ShoppingBag, ArrowLeft } from 'lucide-react';
+import React, { useMemo } from "react";
+import { Payment } from "@mercadopago/sdk-react";
+import { useCart } from "../context/CartContext";
+import { useNavigate, Link } from "react-router-dom";
+import { ShoppingBag, ArrowLeft } from "lucide-react";
 
 export const Checkout = () => {
   const { cart, total, clearCart } = useCart();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const amount = useMemo(() => {
     return Number.isFinite(total) && total > 0 ? total : null;
@@ -18,7 +18,7 @@ export const Checkout = () => {
     return {
       amount,
       payer: {
-        email: 'test_user_123@testuser.com',
+        email: "test_user_123@testuser.com",
       },
     };
   }, [amount]);
@@ -30,51 +30,50 @@ export const Checkout = () => {
       payment_method_id: formData.payment_method_id,
       transaction_amount: amount,
       installments: Number(formData.installments),
-      description: 'Compra en Orilla Mates',
+      description: "Compra en Orilla Mates",
       payer: formData.payer,
-      items: cart.map(item => ({
+      items: cart.map((item) => ({
         id: String(item.id),
         title: item.nombre,
         quantity: Number(item.cantidad),
         unit_price: Number(item.precio),
-        description: item.colorSeleccionado, 
-        category_id: "mates" 
+        description: item.colorSeleccionado,
+        category_id: "mates",
       })),
     };
 
     try {
-      const response = await fetch('https://orilla-mates-backend.onrender.com/process_payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentData),
-      });
+      const response = await fetch(
+        "https://orilla-mates-backend.onrender.com/process_payment",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(paymentData),
+        }
+      );
 
       const result = await response.json();
       console.log("Respuesta del servidor:", result);
 
-      if (result.status === 'approved') {
-          const itemsComprados = cart; 
-          const totalFinal = total;
-          
-          
-          
-          navigate('/compra-exitosa', { 
-              state: { 
-                  paymentId: result.id,
-                  items: itemsComprados,
-                  total: totalFinal     
-              } 
-          });
-          clearCart();
-          
-      } else if (result.status === 'in_process') {
-        clearCart(); 
+      if (result.status === "approved") {
+        const itemsComprados = cart;
+        const totalFinal = total;
+
+        navigate("/compra-exitosa", {
+          state: {
+            paymentId: result.id,
+            items: itemsComprados,
+            total: totalFinal,
+          },
+        });
+        clearCart();
+      } else if (result.status === "in_process") {
+        clearCart();
         alert("⏳ El pago está pendiente de aprobación.");
-        navigate('/');
+        navigate("/");
       } else {
         alert(`⚠️ El pago fue rechazado. Motivo: ${result.status_detail}`);
       }
-
     } catch (error) {
       console.error("Error al procesar el pago:", error);
       alert("❌ Hubo un error de conexión con el servidor.");
@@ -82,18 +81,21 @@ export const Checkout = () => {
   };
 
   if (!initialization) {
-  return (
+    return (
       <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4">
         <div className="max-w-md w-full bg-[#2F4A2F] p-10 text-center shadow-2xl border border-[#E8D6B3]/20">
-          <ShoppingBag size={48} className="text-[#E8D6B3] mx-auto mb-6 opacity-50" />
+          <ShoppingBag
+            size={48}
+            className="text-[#E8D6B3] mx-auto mb-6 opacity-50"
+          />
           <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest uppercase mb-4">
             No hay productos
           </h2>
           <p className="text-[#E8D6B3]/60 text-xs tracking-widest uppercase mb-8 leading-relaxed">
             Parece que no hay una compra activa para mostrar en este momento.
           </p>
-          <Link 
-            to="/#productos" 
+          <Link
+            to="/#productos"
             className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
           >
             <ArrowLeft size={14} /> Volver al inicio
@@ -101,7 +103,7 @@ export const Checkout = () => {
         </div>
       </div>
     );
-}
+  }
 
   return (
     <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)]  flex flex-col items-center justify-center">
@@ -110,27 +112,25 @@ export const Checkout = () => {
           Total a pagar: ${amount}
         </h2>
 
-      <Payment
-        initialization={initialization}
-        customization={{
-          paymentMethods: {
-            creditCard: 'all',
-            debitCard: 'all',
-            mercadoPago: 'all',
-          },
-          visual: {
-            style: {
-              theme: 'default',
-              
-            }
-          }
-        }}
-        onSubmit={onSubmit}
-        onError={(error) => console.error('Error Brick:', error)}
-        onReady={() => console.log('Payment Brick listo')}
-      />
-    </div>
+        <Payment
+          initialization={initialization}
+          customization={{
+            paymentMethods: {
+              creditCard: "all",
+              debitCard: "all",
+              mercadoPago: "all",
+            },
+            visual: {
+              style: {
+                theme: "default",
+              },
+            },
+          }}
+          onSubmit={onSubmit}
+          onError={(error) => console.error("Error Brick:", error)}
+          onReady={() => console.log("Payment Brick listo")}
+        />
+      </div>
     </section>
-    
   );
 };

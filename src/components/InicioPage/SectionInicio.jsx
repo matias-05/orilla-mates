@@ -1,24 +1,21 @@
-import { HashLink } from 'react-router-hash-link';
+import { HashLink } from "react-router-hash-link";
 
 export default function SectionInicio() {
   return (
-    <section 
-      className="flex flex-col md:flex-row h-[calc(100vh-80px)] w-full overflow-hidden font-quicksand" 
+    <section
+      className="flex flex-col md:flex-row h-[calc(100vh-80px)] w-full overflow-hidden font-quicksand"
       id="inicio"
     >
-
       <div className="w-full md:w-1/2 bg-[#F2E4C9] flex flex-col justify-center px-6 sm:px-12 md:px-24 py-8 md:py-0 gap-6 md:gap-12 order-2 md:order-1 flex-1 md:h-full">
-        
         <h1 className="font-belleza text-4xl sm:text-6xl lg:text-8xl text-black leading-[1.1]">
           Orilla Mates <br /> Paraná
         </h1>
 
-        <HashLink 
-          smooth 
-          to="/productos/mates" 
+        <HashLink
+          smooth
+          to="/productos/mates"
           className="group relative flex flex-col items-center justify-center bg-[#2F4A2F] w-fit px-6 py-2.5  shadow-sm hover:shadow-md  transition-all duration-500 cursor-pointer overflow-hidden border border-[#2F4A2F]/10"
         >
-
           <span className="font-belleza text-[#E8D6B3] text-sm md:text-base border-b border-[#E8D6B3]/20  pb-0.5 tracking-widest transition-transform duration-500 group-hover:-translate-y-2">
             Ver Productos
           </span>
@@ -41,13 +38,12 @@ export default function SectionInicio() {
       </div>
 
       <div className="w-full md:w-1/2 h-[35vh] md:h-full order-1 md:order-2 shrink-0 md:shrink">
-        <img 
-          src="/foto-inicio.webp" 
+        <img
+          src="/foto-inicio.webp"
           alt="Mates Orilla"
           className="w-full h-full object-cover object-center"
         />
       </div>
-
     </section>
   );
 }

@@ -2,7 +2,7 @@ import CardCategorias from "../Cards/CardCategorias";
 
 export default function Productos() {
   return (
-    <section 
+    <section
       id="productos"
       className="
         relative w-full
@@ -14,9 +14,8 @@ export default function Productos() {
         bg-transparent
       "
     >
-
       <div className="absolute inset-0 z-0 bg-black">
-        <div 
+        <div
           className="
             absolute inset-0
             bg-[url('/fondo-productos.webp')] 

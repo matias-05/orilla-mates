@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { toast } from 'sonner';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
+import { toast } from "sonner";
 
 const CartContext = createContext(null);
 
@@ -7,48 +13,52 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem('orilla_cart');
+    const savedCart = localStorage.getItem("orilla_cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem('orilla_cart', JSON.stringify(cart));
+    localStorage.setItem("orilla_cart", JSON.stringify(cart));
   }, [cart]);
 
-
   const addToCart = (product) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item =>
-        item.id === product.id &&
-        item.colorSeleccionado === product.colorSeleccionado
+    setCart((prevCart) => {
+      const existingItem = prevCart.find(
+        (item) =>
+          item.id === product.id &&
+          item.colorSeleccionado === product.colorSeleccionado
       );
 
-      const stockDisponible = typeof product.stock === 'object' 
-          ? product.stock[product.colorSeleccionado] 
+      const stockDisponible =
+        typeof product.stock === "object"
+          ? product.stock[product.colorSeleccionado]
           : product.stock;
 
       if (existingItem) {
         if (existingItem.cantidad >= stockDisponible) {
-          toast.error(`Lo sentimos, solo hay ${stockDisponible} unidades disponibles en color ${product.colorSeleccionado}.`, {
-            style: { 
-                background: '#ce2a2a', 
-                color: '#E8D6B3', 
-                borderRadius: 0, 
-                // Flexbox para centrado total
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',    // Centrado horizontal
-                justifyContent: 'center', // Centrado vertical
-                textAlign: 'center',      // Alineación de las líneas de texto
-                minHeight: '80px',        // Altura mínima para asegurar espacio de centrado
-                border: '1px solid #E8D6B333', // Opcional: un borde sutil para definir más el cuadrado
-            },
-            });
+          toast.error(
+            `Lo sentimos, solo hay ${stockDisponible} unidades disponibles en color ${product.colorSeleccionado}.`,
+            {
+              style: {
+                background: "#ce2a2a",
+                color: "#E8D6B3",
+                borderRadius: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                minHeight: "80px",
+                border: "1px solid #E8D6B333",
+              },
+            }
+          );
           return prevCart;
         }
 
-        return prevCart.map(item =>
-          item.id === product.id && item.colorSeleccionado === product.colorSeleccionado
+        return prevCart.map((item) =>
+          item.id === product.id &&
+          item.colorSeleccionado === product.colorSeleccionado
             ? { ...item, cantidad: item.cantidad + 1 }
             : item
         );
@@ -59,31 +69,28 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateQuantity = (id, color, amount) => {
-    setCart(prevCart =>
-      prevCart.map(item => {
+    setCart((prevCart) =>
+      prevCart.map((item) => {
         if (item.id === id && item.colorSeleccionado === color) {
-
-          const stockDisponible = typeof item.stock === 'object'
-            ? item.stock[color]
-            : item.stock;
+          const stockDisponible =
+            typeof item.stock === "object" ? item.stock[color] : item.stock;
 
           const nuevaCantidad = item.cantidad + amount;
 
           if (amount > 0 && nuevaCantidad > stockDisponible) {
             toast.error(`Límite de stock alcanzado para color ${color}`, {
-            style: { 
-                background: '#ce2a2a', 
-                color: '#E8D6B3', 
-                borderRadius: 0, 
-                // Flexbox para centrado total
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',    // Centrado horizontal
-                justifyContent: 'center', // Centrado vertical
-                textAlign: 'center',      // Alineación de las líneas de texto
-                minHeight: '80px',        // Altura mínima para asegurar espacio de centrado
-                border: '1px solid #E8D6B333', // Opcional: un borde sutil para definir más el cuadrado
-            },
+              style: {
+                background: "#ce2a2a",
+                color: "#E8D6B3",
+                borderRadius: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                minHeight: "80px",
+                border: "1px solid #E8D6B333",
+              },
             });
             return item;
           }
@@ -99,15 +106,15 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeItem = (id, color) => {
-    setCart(prevCart =>
-      prevCart.filter(item =>
-        !(item.id === id && item.colorSeleccionado === color)
+    setCart((prevCart) =>
+      prevCart.filter(
+        (item) => !(item.id === id && item.colorSeleccionado === color)
       )
     );
   };
 
   const clearCart = () => {
-    setCart([]); 
+    setCart([]);
   };
 
   const cartCount = useMemo(() => {
@@ -134,7 +141,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateQuantity,
         removeItem,
-        clearCart, 
+        clearCart,
         cartCount,
         total,
       }}

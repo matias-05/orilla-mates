@@ -1,30 +1,30 @@
-import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Inicio from './pages/InicioPage';
-import PaginaProductos from './pages/ProductosPage';
-import CarritoPage from './pages/CarritoPage';
-import AdminPage from './pages/AdminPage';
-import LoginPage from './pages/LoginPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import { Checkout } from './components/Checkout';
-import { CartProvider } from './context/CartContext';
-import CompraExitosa from './components/CarritoPage/CompraExitosa';
-import { Toaster } from 'sonner';
+import { Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Inicio from "./pages/InicioPage";
+import PaginaProductos from "./pages/ProductosPage";
+import CarritoPage from "./pages/CarritoPage";
+import AdminPage from "./pages/AdminPage";
+import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { Checkout } from "./components/Checkout";
+import { CartProvider } from "./context/CartContext";
+import CompraExitosa from "./components/CarritoPage/CompraExitosa";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <CartProvider>
-      <Toaster 
-        position="bottom-right" 
+      <Toaster
+        position="bottom-right"
         toastOptions={{
           style: {
-            borderRadius: '0px', // 100% Cuadrado
-            border: '1px solid #E8D6B3', // Borde crema sutil
-            backgroundColor: '#2F4A2F', // Fondo verde Orilla
-            color: '#E8D6B3', // Texto crema
-            fontFamily: 'Quicksand, sans-serif',
+            borderRadius: "0px",
+            border: "1px solid #E8D6B3",
+            backgroundColor: "#2F4A2F",
+            color: "#E8D6B3",
+            fontFamily: "Quicksand, sans-serif",
           },
-          className: 'my-toast-class',
+          className: "my-toast-class",
         }}
       />
       <div className="min-h-screen bg-[#fcf9f5]">
