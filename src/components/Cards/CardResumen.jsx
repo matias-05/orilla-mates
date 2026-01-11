@@ -123,7 +123,7 @@ export default function CardResumen() {
         </div>
         <div className="h-px bg-white/10 my-4"></div>
         <div className="flex justify-between items-end">
-          <span className="text-2xl font-medium font-belleza tracking-widest uppercase">
+          <span className="text-2xl font-bold font-belleza tracking-widest ">
             Total
           </span>
           <span className="text-2xl font-bold text-[#E8D6B3] font-belleza">
@@ -134,7 +134,7 @@ export default function CardResumen() {
 
       <button
         onClick={handleFinalizarPedido}
-        className="cursor-pointer w-full bg-[#8B5E3C] hover:bg-[#a67148] text-[#F2E4C9] py-5 font-bold text-[11px] uppercase tracking-[0.3em] transition-all shadow-lg active:scale-95"
+        className=" cursor-pointer w-full text-[16px] bg-[#8B5E3C] hover:bg-[#a67148] text-[#F2E4C9]  py-5 font-medium tracking-[0.3em] transition-all shadow-lg active:scale-95"
       >
         Finalizar Compra
       </button>

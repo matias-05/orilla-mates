@@ -47,7 +47,7 @@ export default function CardProdInCart({
                 backgroundColor: getColorBackground(item.colorSeleccionado),
               }}
             ></div>
-            <span className="text-[10px] font-bold tracking-widest text-[#E8D6B3]/80 uppercase">
+            <span className="text-[14px] font-bold tracking-widest text-[#E8D6B3]/80 ">
               {item.colorSeleccionado}
             </span>
           </div>
