@@ -5,21 +5,20 @@ import { useNavigate, Link } from "react-router-dom";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 
 export const Checkout = () => {
-  const { cart, total, clearCart } = useCart();
+  const { cart = [], total = 0, clearCart } = useCart() || {};
   const navigate = useNavigate();
 
   const amount = useMemo(() => {
-    return Number.isFinite(total) && total > 0 ? total : null;
-  }, [total]);
+    if (typeof total !== "number" || isNaN(total) || total <= 0) return null;
+    if (!cart || cart.length === 0) return null;
+
+    return total;
+  }, [total, cart]);
 
   const initialization = useMemo(() => {
     if (!amount) return null;
-
     return {
-      amount,
-      payer: {
-        email: "test_user_123@testuser.com",
-      },
+      amount: amount,
     };
   }, [amount]);
 
@@ -37,8 +36,8 @@ export const Checkout = () => {
         title: item.nombre,
         quantity: Number(item.cantidad),
         unit_price: Number(item.precio),
-        description: item.colorSeleccionado,
-        category_id: "mates",
+        description: item.colorSeleccionado || "Unico",
+        category_id: item.categoria || "Otros",
       })),
     };
 

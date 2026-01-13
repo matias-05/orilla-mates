@@ -16,18 +16,18 @@ const CompraExitosa = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [ticketEnviado, setTicketEnviado] = useState(false);
 
-  const { paymentId, items, total, esEfectivo } = location.state || {
-    paymentId: null,
+  const { items, total, esEfectivo, metodoEntrega } = location.state || {
     items: [],
     total: 0,
     esEfectivo: false,
+    metodoEntrega: "",
   };
 
   const TELEFONO_DUEÑO = import.meta.env.VITE_TELEFONO_DUENO;
 
   const hayDatosDeCompra = useMemo(() => {
-    return paymentId !== null && items.length > 0;
-  }, [paymentId, items]);
+    return items.length > 0;
+  }, [items]);
 
   if (!hayDatosDeCompra || ticketEnviado) {
     return (
@@ -73,19 +73,41 @@ const CompraExitosa = () => {
         if (!response.ok) throw new Error("Error al procesar el stock");
       }
 
-      const textoBase = `¡Hola Orilla Mates! Acabo de realizar una compra.\n\n`;
-      const textoID = `*Orden:* #${paymentId}\n`;
+      const tituloPago = esEfectivo
+        ? "*Forma de pago:* Efectivo a coordinar"
+        : "*Forma de pago:* MercadoPago";
+
+      const infoEntrega =
+        metodoEntrega === "envio"
+          ? "*Forma de entrega:* Envío a domicilio"
+          : "*Forma de entrega:* Retiro en el Local";
+
+      const textoBase = `*¡Hola Orilla Mates!* ${
+        esEfectivo
+          ? "*Quiero realizar un pedido.*"
+          : "*Acabo de realizar una compra.*"
+      }\n\n`;
+      const textoEncabezado = `${tituloPago}\n${infoEntrega}\n
+      \n`;
+
       let detalleItems = `*Detalle:*\n`;
       items.forEach((item) => {
-        detalleItems += `- ${item.nombre} (${item.colorSeleccionado}) x${item.cantidad}\n`;
+        const mostrarColor =
+          item.colorSeleccionado && item.colorSeleccionado !== "Unico"
+            ? ` (${item.colorSeleccionado})`
+            : "";
+
+        detalleItems += `- ${item.nombre}${mostrarColor} x${item.cantidad}\n`;
       });
-      const textoTotal = `\n*Total:* $${total}`;
+
+      const textoTotal = `\n*Total: $${Number(total).toLocaleString("es-AR")}*`;
+
+      const textoCierre = esEfectivo
+        ? `\n\nQuedo a la espera para coordinar el pago. ¡Gracias!`
+        : `\n\nQuedo a la espera. ¡Gracias!`;
+
       const mensajeFinal = encodeURIComponent(
-        textoBase +
-          textoID +
-          detalleItems +
-          textoTotal +
-          `\n\nQuedo a la espera para coordinar. Gracias!`
+        textoBase + textoEncabezado + detalleItems + textoTotal + textoCierre
       );
 
       window.open(
@@ -104,10 +126,6 @@ const CompraExitosa = () => {
           background: "#ce2a2a",
           color: "#E8D6B3",
           borderRadius: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
           textAlign: "center",
           minHeight: "80px",
           border: "1px solid #E8D6B333",
@@ -159,7 +177,6 @@ const CompraExitosa = () => {
           <div className="bg-[#F8F5F0] p-6 border-l-4 border-[#2F4A2F]">
             <p className="text-[9px] uppercase tracking-[0.3em] text-[#2F4A2F]/40 mb-4 font-black">
               Resumen de la Orden{" "}
-              {paymentId ? `#${paymentId.toString().slice(-6)}` : ""}
             </p>
             <div className="space-y-3 mb-4">
               {items.map((item, index) => (

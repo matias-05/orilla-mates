@@ -15,15 +15,22 @@ const normalizar = (txt) => {
 
 const obtenerStockColor = (stock, colorName) => {
   if (stock === undefined || stock === null) return 0;
+
   if (typeof stock === "number") return stock;
   if (typeof stock === "string") return parseInt(stock, 10) || 0;
+
   if (typeof stock === "object") {
+    if (!colorName || colorName === "" || colorName === "null") {
+      return Number(stock["Unico"] || stock["unico"] || 0);
+    }
+
     const keyLimpia = normalizar(colorName);
 
     return Number(
       stock[colorName] ||
         stock[colorName.toLowerCase()] ||
         stock[keyLimpia] ||
+        stock["Unico"] ||
         0
     );
   }
@@ -53,29 +60,31 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
   const handleAgregar = () => {
     if (sinStockGeneral) return;
 
-    const stockActual = obtenerStockColor(prod.stock, colorElegido);
+    const colorParaStock = colorElegido || "Unico";
+    const stockActual = obtenerStockColor(prod.stock, colorParaStock);
 
     if (stockActual <= 0) {
-      toast.error(`No hay stock disponible para el color ${colorElegido}`, {
-        style: {
-          background: "#ce2a2a",
-          color: "#E8D6B3",
-          borderRadius: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          minHeight: "80px",
-          border: "1px solid #E8D6B333",
-        },
-      });
+      toast.error(
+        `No hay stock disponible ${
+          colorElegido ? `para el color ${colorElegido}` : ""
+        }`,
+        {
+          style: {
+            background: "#ce2a2a",
+            color: "#E8D6B3",
+            borderRadius: 0,
+            textAlign: "center",
+            minHeight: "80px",
+            border: "1px solid #E8D6B333",
+          },
+        }
+      );
       return;
     }
 
     addToCart({
       ...prod,
-      colorSeleccionado: colorElegido,
+      colorSeleccionado: colorElegido || "Unico",
     });
   };
 
