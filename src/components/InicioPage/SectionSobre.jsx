@@ -33,6 +33,9 @@ export default function SectionSobre() {
           <img
             src="/logo-orilla.webp"
             alt="Orilla Mates Logo"
+            width="144"
+            height="144"
+            loading="lazy"
             className="w-28 h-28 md:w-36 md:h-36 object-contain"
           />
         </div>
@@ -50,6 +53,9 @@ export default function SectionSobre() {
           <img
             src="/logo-orilla.webp"
             alt="Orilla Mates Logo"
+            width="144"
+            height="144"
+            loading="lazy"
             className="w-28 h-28 md:w-36 md:h-36 object-contain"
           />
         </div>

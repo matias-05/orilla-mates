@@ -27,10 +27,15 @@ export default function CarritoLleno() {
           </h1>
           <NavLink
             to="/productos/mates"
+            aria-label="Volver al catálogo de productos"
             className="flex items-center gap-2 text-[#2F4A2F]/60 hover:text-[#2F4A2F] transition-colors text-sm font-medium"
           >
-            <ChevronLeft size={18} className="cursor-pointer" /> Continuar
-            comprando
+            <ChevronLeft
+              size={18}
+              className="cursor-pointer"
+              aria-hidden="true"
+            />{" "}
+            Continuar comprando
           </NavLink>
         </div>
 

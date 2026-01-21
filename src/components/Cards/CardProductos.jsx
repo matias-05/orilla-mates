@@ -82,6 +82,8 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
       return;
     }
 
+    toast.success(`Producto agregado al carrito con éxito`);
+
     addToCart({
       ...prod,
       colorSeleccionado: colorElegido || "Unico",

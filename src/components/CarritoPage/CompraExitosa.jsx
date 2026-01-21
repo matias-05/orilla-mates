@@ -87,8 +87,7 @@ const CompraExitosa = () => {
           ? "*Quiero realizar un pedido.*"
           : "*Acabo de realizar una compra.*"
       }\n\n`;
-      const textoEncabezado = `${tituloPago}\n${infoEntrega}\n
-      \n`;
+      const textoEncabezado = `${tituloPago}\n${infoEntrega}\n`;
 
       let detalleItems = `*Detalle:*\n`;
       items.forEach((item) => {

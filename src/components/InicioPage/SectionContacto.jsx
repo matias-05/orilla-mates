@@ -10,7 +10,7 @@ export default function SectionContacto() {
   return (
     <section
       id="contacto"
-      className="bg-[#F2E4C9]  h-[calc(100vh-80px)] w-full flex flex-col font-quicksand overflow-hidden"
+      className="bg-[#F2E4C9] h-[calc(100vh-80px)] w-full flex flex-col font-quicksand overflow-hidden"
     >
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
         <div className="relative mb-4 md:mb-10">
@@ -18,6 +18,9 @@ export default function SectionContacto() {
           <img
             src="/logo-orilla.webp"
             alt="Logo Orilla Mates"
+            width="192"
+            height="192"
+            loading="lazy"
             className="relative w-20 h-20 md:w-48 md:h-48 object-contain animate-float"
           />
         </div>
@@ -41,10 +44,12 @@ export default function SectionContacto() {
             <a
               href={`https://wa.me/${contacto.whatsapp}`}
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Contactar por WhatsApp"
               className="flex items-center gap-3 transition-transform active:scale-95"
             >
               <div className="p-2.5 bg-[#F2E4C9]/10 text-[#F2E4C9] rounded-xl">
-                <MessageCircle size={20} />
+                <MessageCircle size={20} aria-hidden="true" />
               </div>
               <div className="text-[#F2E4C9]">
                 <p className="text-[8px] uppercase tracking-widest opacity-40 font-bold">
@@ -57,13 +62,15 @@ export default function SectionContacto() {
             <a
               href={`https://instagram.com/${contacto.instagram.replace(
                 "@",
-                ""
+                "",
               )}`}
               target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Seguir en Instagram"
               className="flex items-center gap-3 transition-transform active:scale-95"
             >
               <div className="p-2.5 bg-[#F2E4C9]/10 text-[#F2E4C9] rounded-xl">
-                <Instagram size={20} />
+                <Instagram size={20} aria-hidden="true" />
               </div>
               <div className="text-[#F2E4C9]">
                 <p className="text-[8px] uppercase tracking-widest opacity-40 font-bold">
@@ -75,10 +82,11 @@ export default function SectionContacto() {
 
             <a
               href={`mailto:${contacto.email}`}
+              aria-label="Enviar correo electrónico"
               className="flex items-center gap-3 transition-transform active:scale-95"
             >
               <div className="p-2.5 bg-[#F2E4C9]/10 text-[#F2E4C9] rounded-xl">
-                <Mail size={20} />
+                <Mail size={20} aria-hidden="true" />
               </div>
               <div className="text-[#F2E4C9]">
                 <p className="text-[8px] uppercase tracking-widest opacity-40 font-bold">
@@ -90,7 +98,7 @@ export default function SectionContacto() {
 
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[#F2E4C9]/10 text-[#F2E4C9] rounded-xl">
-                <MapPin size={20} />
+                <MapPin size={20} aria-hidden="true" />
               </div>
               <div className="text-[#F2E4C9]">
                 <p className="text-[8px] uppercase tracking-widest opacity-40 font-bold">

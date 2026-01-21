@@ -47,11 +47,13 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 bg-[#2F4A2F] h-[80px] w-full flex items-center justify-between px-6 md:px-12 z-[100] font-quicksand shadow-md">
       <div className="relative w-24 h-full flex items-center">
-        <HashLink smooth to="/#inicio">
+        <HashLink smooth to="/#inicio" aria-label="Ir al inicio">
           <img
             src="/logo-orilla.webp"
             alt="Logo Orilla Mates"
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/3  left-0 h-20 w-20 lg:w-24 lg:h-24 min-w-[112px] object-contain drop-shadow-xl hover:scale-105 transition-transform"
+            width="96"
+            height="96"
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/3 left-0 h-20 w-20 lg:w-24 lg:h-24 min-w-[112px] object-contain drop-shadow-xl hover:scale-105 transition-transform"
           />
         </HashLink>
       </div>
@@ -85,7 +87,10 @@ export default function Navbar() {
 
       <div className="flex items-center gap-4 md:gap-6 text-[#E8D6B3]">
         <div className="relative cursor-pointer hover:scale-110 transition-transform">
-          <HashLink to="/carrito">
+          <HashLink
+            to="/carrito"
+            aria-label={`Ver carrito, ${cartCount} productos`}
+          >
             <ShoppingCart size={22} />
             {cartCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-[#8B5E3C] text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full animate-in fade-in zoom-in">
@@ -98,6 +103,8 @@ export default function Navbar() {
         <button
           onClick={toggleMenu}
           className="md:hidden focus:outline-none ml-2"
+          aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={isOpen}
         >
           {isOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
