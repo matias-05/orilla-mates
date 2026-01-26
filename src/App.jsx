@@ -1,52 +1,74 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import Navbar from "./components/Navbar";
-import Inicio from "./pages/InicioPage";
-import PaginaProductos from "./pages/ProductosPage";
-import CarritoPage from "./pages/CarritoPage";
-import AdminPage from "./pages/AdminPage";
-import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { Checkout } from "./components/Checkout";
 import { CartProvider } from "./context/CartContext";
-import CompraExitosa from "./components/CarritoPage/CompraExitosa";
 import { Toaster } from "sonner";
+import { HelmetProvider } from "react-helmet-async";
+
+const Inicio = lazy(() => import("./pages/InicioPage"));
+const PaginaProductos = lazy(() => import("./pages/ProductosPage"));
+const CarritoPage = lazy(() => import("./pages/CarritoPage"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const Checkout = lazy(() =>
+  import("./components/Checkout").then((module) => ({
+    default: module.Checkout,
+  })),
+);
+const CompraExitosa = lazy(
+  () => import("./components/CarritoPage/CompraExitosa"),
+);
+const PageLoader = () => (
+  <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-[#fcf9f5]">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#2F4A2F]"></div>
+  </div>
+);
 
 function App() {
   return (
-    <CartProvider>
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            borderRadius: "0px",
-            border: "1px solid #E8D6B3",
-            backgroundColor: "#2F4A2F",
-            color: "#E8D6B3",
-            fontFamily: "Quicksand, sans-serif",
-          },
-          className: "my-toast-class",
-        }}
-      />
-      <div className="min-h-screen bg-[#fcf9f5]">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/productos/:categoria" element={<PaginaProductos />} />
-          <Route path="/carrito" element={<CarritoPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/compra-exitosa" element={<CompraExitosa />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminPage />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </div>
-    </CartProvider>
+    <HelmetProvider>
+      <CartProvider>
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              borderRadius: "0px",
+              border: "1px solid #E8D6B3",
+              backgroundColor: "#2F4A2F",
+              color: "#E8D6B3",
+              fontFamily: "Quicksand, sans-serif",
+            },
+            className: "my-toast-class",
+          }}
+        />
+        <div className="min-h-screen bg-[#fcf9f5]">
+          <Navbar />
+
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Inicio />} />
+              <Route
+                path="/productos/:categoria"
+                element={<PaginaProductos />}
+              />
+              <Route path="/carrito" element={<CarritoPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/compra-exitosa" element={<CompraExitosa />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </div>
+      </CartProvider>
+    </HelmetProvider>
   );
 }
 
