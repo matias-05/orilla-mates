@@ -10,20 +10,26 @@ export default function CardResumen() {
   const [metodoPago, setMetodoPago] = useState("mercadopago");
   const [metodoEntrega, setMetodoEntrega] = useState("retiro");
 
-  const subtotal = cart.reduce(
+  const [direccion, setDireccion] = useState("");
+  const [errorDireccion, setErrorDireccion] = useState(false);
+
+  const totalFinal = cart.reduce(
     (acc, item) => acc + item.precio * item.cantidad,
-    0
+    0,
   );
 
-  const costoEnvio = metodoEntrega === "envio" ? 0 : 0;
-  const totalFinal = subtotal + costoEnvio;
-
   const handleFinalizarPedido = () => {
+    if (metodoEntrega === "envio" && !direccion.trim()) {
+      setErrorDireccion(true);
+      return;
+    }
+
     const datosPedido = {
       items: [...cart],
       total: totalFinal,
       metodoEntrega: metodoEntrega,
       metodoPago: metodoPago,
+      direccion: metodoEntrega === "envio" ? direccion : null,
     };
 
     if (metodoPago === "mercadopago") {
@@ -39,7 +45,7 @@ export default function CardResumen() {
   };
 
   return (
-    <div className="bg-[#2F4A2F] p-8 text-[#F2E4C9] shadow-2xl sticky top-24 border border-white/5">
+    <div className="bg-[#2F4A2F] p-8 text-[#F2E4C9] shadow-2xl sticky top-24 border border-white/5 font-quicksand">
       <h3 className="font-belleza text-3xl mb-8 border-b border-white/10 pb-4">
         Resumen
       </h3>
@@ -48,9 +54,12 @@ export default function CardResumen() {
         <p className="text-[10px] uppercase font-bold tracking-widest opacity-60 mb-4">
           ¿Cómo recibís tu pedido?
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           <button
-            onClick={() => setMetodoEntrega("retiro")}
+            onClick={() => {
+              setMetodoEntrega("retiro");
+              setErrorDireccion(false);
+            }}
             className={`cursor-pointer flex flex-col items-center gap-2 p-3 border-2 transition-all ${
               metodoEntrega === "retiro"
                 ? "border-[#E8D6B3] bg-white/10"
@@ -58,7 +67,7 @@ export default function CardResumen() {
             }`}
           >
             <MapPin size={18} />
-            <span className="text-sm font-bold  tracking-tighter">
+            <span className="text-sm font-bold tracking-tighter">
               Retiro Local
             </span>
           </button>
@@ -71,9 +80,35 @@ export default function CardResumen() {
             }`}
           >
             <Truck size={18} />
-            <span className="text-sm font-bold  tracking-tighter">Envío</span>
+            <span className="text-sm font-bold tracking-tighter">Envío</span>
           </button>
         </div>
+
+        {metodoEntrega === "envio" && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <label className="text-[10px] uppercase font-bold tracking-widest opacity-60 mb-2 block">
+              Ingresá tu dirección
+            </label>
+            <input
+              type="text"
+              value={direccion}
+              onChange={(e) => {
+                setDireccion(e.target.value);
+                setErrorDireccion(false);
+              }}
+              placeholder="Calle, Altura, Piso, Depto..."
+              className={`
+                        w-full bg-black/20 border p-3 text-sm text-[#F2E4C9] placeholder-white/20 focus:outline-none transition-colors
+                        ${errorDireccion ? "border-red-400 focus:border-red-400" : "border-white/10 focus:border-[#E8D6B3]"}
+                    `}
+            />
+            {errorDireccion && (
+              <p className="text-red-400 text-[10px] mt-1 font-bold tracking-wide uppercase">
+                * La dirección es obligatoria
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mb-8">
@@ -109,17 +144,18 @@ export default function CardResumen() {
       </div>
 
       <div className="space-y-4 mb-8">
-        <div className="flex justify-between opacity-80 text-sm">
-          <span>Subtotal</span>
-          <span>${subtotal.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between opacity-80 text-sm">
+        <div className="flex justify-between items-start w-full opacity-80 text-sm">
           <span>
             {metodoEntrega === "retiro"
               ? "Retiro en Local"
               : "Envío a Domicilio"}
           </span>
-          <span>${costoEnvio.toLocaleString()}</span>
+
+          <span className="text-[10px] md:text-xs font-medium italic opacity-80 text-[#E8D6B3] text-right ml-4 max-w-[150px]">
+            {metodoEntrega === "retiro"
+              ? "Tte. Miguel Gimenez 1446"
+              : direccion || "Coordinar por WhatsApp"}
+          </span>
         </div>
         <div className="h-px bg-white/10 my-4"></div>
         <div className="flex justify-between items-end">
@@ -134,7 +170,7 @@ export default function CardResumen() {
 
       <button
         onClick={handleFinalizarPedido}
-        className=" cursor-pointer w-full text-[16px] bg-[#8B5E3C] hover:bg-[#a67148] text-[#F2E4C9]  py-5 font-medium tracking-[0.3em] transition-all shadow-lg active:scale-95"
+        className="cursor-pointer w-full text-[16px] bg-[#8B5E3C] hover:bg-[#a67148] text-[#F2E4C9] py-5 font-medium tracking-[0.3em] transition-all shadow-lg active:scale-95"
       >
         Finalizar Compra
       </button>

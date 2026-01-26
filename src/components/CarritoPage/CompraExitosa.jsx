@@ -16,18 +16,23 @@ const CompraExitosa = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [ticketEnviado, setTicketEnviado] = useState(false);
 
-  const { items, total, esEfectivo, metodoEntrega } = location.state || {
-    items: [],
-    total: 0,
-    esEfectivo: false,
-    metodoEntrega: "",
-  };
+  const { items, total, esEfectivo, metodoEntrega, direccion } =
+    location.state || {
+      items: [],
+      total: 0,
+      esEfectivo: false,
+      metodoEntrega: "",
+      direccion: "",
+    };
 
   const TELEFONO_DUEÑO = import.meta.env.VITE_TELEFONO_DUENO;
 
-  const hayDatosDeCompra = useMemo(() => {
-    return items.length > 0;
-  }, [items]);
+  const esEnvio = useMemo(() => {
+    const metodo = String(metodoEntrega || "").toLowerCase();
+    return metodo.includes("envi");
+  }, [metodoEntrega]);
+
+  const hayDatosDeCompra = useMemo(() => items.length > 0, [items]);
 
   if (!hayDatosDeCompra || ticketEnviado) {
     return (
@@ -40,11 +45,6 @@ const CompraExitosa = () => {
           <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest mb-4 uppercase">
             {ticketEnviado ? "¡Pedido Finalizado!" : "No hay productos"}
           </h2>
-          <p className="text-[#E8D6B3]/60 text-xs tracking-widest uppercase mb-8 leading-relaxed text-center">
-            {ticketEnviado
-              ? "Gracias por elegir Orilla Mates. El ticket ha sido generado correctamente."
-              : "Parece que no hay una compra activa para mostrar en este momento."}
-          </p>
           <Link
             to="/#productos"
             className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
@@ -68,7 +68,7 @@ const CompraExitosa = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ items: items }),
-          }
+          },
         );
         if (!response.ok) throw new Error("Error al procesar el stock");
       }
@@ -77,59 +77,47 @@ const CompraExitosa = () => {
         ? "*Forma de pago:* Efectivo a coordinar"
         : "*Forma de pago:* MercadoPago";
 
-      const infoEntrega =
-        metodoEntrega === "envio"
-          ? "*Forma de entrega:* Envío a domicilio"
-          : "*Forma de entrega:* Retiro en el Local";
+      const infoEntrega = esEnvio
+        ? `*Forma de entrega:* Envío a domicilio\n*Dirección:* ${direccion || "A coordinar"}`
+        : "*Forma de entrega:* Retiro en *Tte. Miguel Gimenez 1446*";
 
-      const textoBase = `*¡Hola Orilla Mates!* ${
-        esEfectivo
-          ? "*Quiero realizar un pedido.*"
-          : "*Acabo de realizar una compra.*"
-      }\n\n`;
+      const textoBase = `*¡Hola Orilla Mates!* ${esEfectivo ? "*Quiero realizar un pedido.*" : "*Acabo de realizar una compra.*"}\n\n`;
       const textoEncabezado = `${tituloPago}\n${infoEntrega}\n`;
 
-      let detalleItems = `*Detalle:*\n`;
+      let detalleItems = `\n*Detalle:*\n`;
       items.forEach((item) => {
         const mostrarColor =
           item.colorSeleccionado && item.colorSeleccionado !== "Unico"
             ? ` (${item.colorSeleccionado})`
             : "";
-
         detalleItems += `- ${item.nombre}${mostrarColor} x${item.cantidad}\n`;
       });
 
       const textoTotal = `\n*Total: $${Number(total).toLocaleString("es-AR")}*`;
 
-      const textoCierre = esEfectivo
-        ? `\n\nQuedo a la espera para coordinar el pago. ¡Gracias!`
+      let coordinar = "";
+      if (esEfectivo && esEnvio) coordinar = "el pago y el envío";
+      else if (esEfectivo) coordinar = "el pago";
+      else if (esEnvio) coordinar = "el envío";
+
+      const textoCierre = coordinar
+        ? `\n\nQuedo a la espera para coordinar ${coordinar}. ¡Gracias!`
         : `\n\nQuedo a la espera. ¡Gracias!`;
 
       const mensajeFinal = encodeURIComponent(
-        textoBase + textoEncabezado + detalleItems + textoTotal + textoCierre
+        textoBase + textoEncabezado + detalleItems + textoTotal + textoCierre,
       );
-
       window.open(
         `https://wa.me/${TELEFONO_DUEÑO}?text=${mensajeFinal}`,
-        "_blank"
+        "_blank",
       );
 
       clearCart();
       setTicketEnviado(true);
-
       window.history.replaceState({}, document.title);
     } catch (error) {
       console.error("Error:", error);
-      toast.error(`Error al procesar el pedido`, {
-        style: {
-          background: "#ce2a2a",
-          color: "#E8D6B3",
-          borderRadius: 0,
-          textAlign: "center",
-          minHeight: "80px",
-          border: "1px solid #E8D6B333",
-        },
-      });
+      toast.error(`Error al procesar el pedido`);
     } finally {
       setIsProcessing(false);
     }
@@ -152,16 +140,14 @@ const CompraExitosa = () => {
 
         <div className="p-8">
           <p className="text-[#2F4A2F] text-l text-center mb-8 leading-relaxed tracking-wider">
-            Para finalizar su pedido, <br />
-            por favor envíe el ticket por WhatsApp
+            Para finalizar su pedido, <br /> por favor envíe el ticket por
+            WhatsApp
           </p>
 
           <button
             onClick={enviarWhatsApp}
             disabled={isProcessing}
-            className={`cursor-pointer w-full bg-[#25D366] hover:bg-[#1eb956] text-white font-bold py-5 px-6 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg active:scale-95 mb-8 ${
-              isProcessing ? "opacity-70" : ""
-            }`}
+            className={`cursor-pointer w-full bg-[#25D366] hover:bg-[#1eb956] text-white font-bold py-5 px-6 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg active:scale-95 mb-8 ${isProcessing ? "opacity-70" : ""}`}
           >
             {isProcessing ? (
               <Loader2 className="animate-spin" size={22} />
@@ -175,7 +161,7 @@ const CompraExitosa = () => {
 
           <div className="bg-[#F8F5F0] p-6 border-l-4 border-[#2F4A2F]">
             <p className="text-[9px] uppercase tracking-[0.3em] text-[#2F4A2F]/40 mb-4 font-black">
-              Resumen de la Orden{" "}
+              Resumen de la Orden
             </p>
             <div className="space-y-3 mb-4">
               {items.map((item, index) => (
@@ -183,22 +169,37 @@ const CompraExitosa = () => {
                   <p className="text-[11px] text-[#2F4A2F] uppercase tracking-wide text-left">
                     <span className="font-bold">{item.cantidad}x</span>{" "}
                     {item.nombre}
-                    <span className="block text-[9px] opacity-50">
-                      {item.colorSeleccionado}
-                    </span>
+                    {item.colorSeleccionado &&
+                      item.colorSeleccionado !== "Unico" && (
+                        <span className="block text-[9px] opacity-50">
+                          {item.colorSeleccionado}
+                        </span>
+                      )}
                   </p>
                   <p className="text-[11px] font-bold text-[#2F4A2F]">
-                    ${(item.precio * item.cantidad).toLocaleString()}
+                    ${(item.precio * item.cantidad).toLocaleString("es-AR")}
                   </p>
                 </div>
               ))}
             </div>
-            <div className="border-t border-[#2F4A2F]/10 mt-4 pt-4 flex justify-between items-center">
+
+            {esEnvio && (
+              <div className="flex justify-between items-center pt-3 mb-2 ">
+                <p className="text-[14px] text-[#2F4A2F] font-bold tracking-tight">
+                  Envío
+                </p>
+                <p className="text-[14px] text-[#2F4A2F]/70 italic tracking-tighter text-right">
+                  {direccion ? `Destino: ${direccion}` : "Precio a coordinar"}
+                </p>
+              </div>
+            )}
+
+            <div className="border-t border-[#2F4A2F] mt-2 pt-4 flex justify-between items-center">
               <span className="font-belleza text-lg text-[#2F4A2F] tracking-widest uppercase">
                 Total
               </span>
               <span className="text-xl font-bold text-[#2F4A2F] font-belleza">
-                ${total.toLocaleString()}
+                ${total.toLocaleString("es-AR")}
               </span>
             </div>
           </div>

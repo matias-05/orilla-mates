@@ -1,25 +1,25 @@
 import React, { useMemo } from "react";
 import { Payment } from "@mercadopago/sdk-react";
 import { useCart } from "../context/CartContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
 
 export const Checkout = () => {
   const { cart = [], total = 0, clearCart } = useCart() || {};
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { metodoEntrega = "retiro", direccion = "" } = location.state || {};
 
   const amount = useMemo(() => {
     if (typeof total !== "number" || isNaN(total) || total <= 0) return null;
     if (!cart || cart.length === 0) return null;
-
     return total;
   }, [total, cart]);
 
   const initialization = useMemo(() => {
     if (!amount) return null;
-    return {
-      amount: amount,
-    };
+    return { amount: amount };
   }, [amount]);
 
   const onSubmit = async ({ formData }) => {
@@ -48,21 +48,20 @@ export const Checkout = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(paymentData),
-        }
+        },
       );
 
       const result = await response.json();
-      console.log("Respuesta del servidor:", result);
 
       if (result.status === "approved") {
-        const itemsComprados = cart;
-        const totalFinal = total;
-
         navigate("/compra-exitosa", {
           state: {
             paymentId: result.id,
-            items: itemsComprados,
-            total: totalFinal,
+            items: cart,
+            total: total,
+            esEfectivo: false,
+            metodoEntrega: metodoEntrega,
+            direccion: direccion,
           },
         });
         clearCart();
@@ -90,9 +89,6 @@ export const Checkout = () => {
           <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest uppercase mb-4">
             No hay productos
           </h2>
-          <p className="text-[#E8D6B3]/60 text-xs tracking-widest uppercase mb-8 leading-relaxed">
-            Parece que no hay una compra activa para mostrar en este momento.
-          </p>
           <Link
             to="/#productos"
             className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
@@ -105,12 +101,11 @@ export const Checkout = () => {
   }
 
   return (
-    <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)]  flex flex-col items-center justify-center">
-      <div className="w-full max-w-md mx-auto p-4 bg-[#2F4A2F]  shadow-md my-10 border border-gray-200">
+    <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)] flex flex-col items-center justify-center">
+      <div className="w-full max-w-md mx-auto p-4 bg-[#2F4A2F] shadow-md my-10 border border-gray-200">
         <h2 className="text-2xl text-center mb-6 font-medium text-[#E8D6B3] ">
-          Total a pagar: ${amount}
+          Total a pagar: ${amount?.toLocaleString("es-AR")}
         </h2>
-
         <Payment
           initialization={initialization}
           customization={{
@@ -119,15 +114,10 @@ export const Checkout = () => {
               debitCard: "all",
               mercadoPago: "all",
             },
-            visual: {
-              style: {
-                theme: "default",
-              },
-            },
+            visual: { style: { theme: "default" } },
           }}
           onSubmit={onSubmit}
           onError={(error) => console.error("Error Brick:", error)}
-          onReady={() => console.log("Payment Brick listo")}
         />
       </div>
     </section>
