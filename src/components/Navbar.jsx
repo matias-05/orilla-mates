@@ -8,46 +8,71 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const [activeHash, setActiveHash] = useState("#inicio");
-
   const { cart } = useCart();
+
   const cartCount = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
   const navLinks = [
-    { name: "Inicio", to: "/#inicio" },
-    { name: "Productos", to: "/#productos" },
-    { name: "Nosotros", to: "/#sobre-nosotros" },
-    { name: "Contacto", to: "/#contacto" },
+    { name: "Inicio", to: "/#inicio", id: "inicio" },
+    { name: "Productos", to: "/#productos", id: "productos" },
+    { name: "Nosotros", to: "/#sobre-nosotros", id: "sobre-nosotros" },
+    { name: "Contacto", to: "/#contacto", id: "contacto" },
   ];
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   useEffect(() => {
-    if (location.hash) {
-      setActiveHash(location.hash);
-    } else {
-      setActiveHash("#inicio");
+    if (location.pathname !== "/") {
+      setActiveHash("");
+      return;
     }
-  }, [location]);
+
+    const observerOptions = {
+      root: null,
+      rootMargin: "-50% 0px -50% 0px",
+      threshold: 0,
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveHash(`#${entry.target.id}`);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      observerCallback,
+      observerOptions,
+    );
+
+    navLinks.forEach((link) => {
+      const element = document.getElementById(link.id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [location.pathname]);
 
   const checkIsActive = (link) => {
-    const { pathname, hash } = location;
-    const currentHash = hash || "#inicio";
+    const { pathname } = location;
 
-    if (link.name === "Productos") {
-      return currentHash === "#productos" || pathname.startsWith("/productos");
+    if (link.name === "Productos" && pathname.startsWith("/productos")) {
+      return true;
     }
 
-    if (link.name === "Inicio") {
-      return pathname === "/" && currentHash === "#inicio";
+    if (pathname === "/") {
+      return activeHash === `#${link.id}`;
     }
 
-    return currentHash === link.to.replace("/", "");
+    return false;
   };
 
   return (
     <nav className="sticky top-0 bg-[#2F4A2F] h-[80px] w-full flex items-center justify-between px-6 md:px-12 z-[100] font-quicksand shadow-md">
+      {/* LOGO */}
       <div className="relative w-24 h-full flex items-center">
-        <HashLink smooth to="/#inicio" aria-label="Ir al inicio">
+        <HashLink smooth to="/#inicio" aria-label="Volver al inicio">
           <img
             src="/logo-orilla.webp"
             alt="Logo Orilla Mates"
@@ -68,7 +93,7 @@ export default function Navbar() {
               smooth
               to={link.to}
               className={`relative py-1 transition-colors group ${
-                isActive ? "text-[#F2E4C9]" : "hover:text-[#F2E4C9]"
+                isActive ? "text-[#F2E4C9] font-bold" : "hover:text-[#F2E4C9]"
               }`}
             >
               {link.name}
@@ -89,9 +114,9 @@ export default function Navbar() {
         <div className="relative cursor-pointer hover:scale-110 transition-transform">
           <HashLink
             to="/carrito"
-            aria-label={`Ver carrito, ${cartCount} productos`}
+            aria-label={`Ver carrito, ${cartCount} items`}
           >
-            <ShoppingCart size={22} />
+            <ShoppingCart size={22} aria-hidden="true" />
             {cartCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-[#8B5E3C] text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full animate-in fade-in zoom-in">
                 {cartCount}
@@ -130,7 +155,7 @@ export default function Navbar() {
               to={link.to}
               onClick={() => setIsOpen(false)}
               className={`relative text-lg tracking-[0.2em] font-light group ${
-                isActive ? "text-white font-medium" : "hover:text-white"
+                isActive ? "text-white font-bold" : "hover:text-white"
               }`}
             >
               {link.name}

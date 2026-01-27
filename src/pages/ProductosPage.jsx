@@ -11,6 +11,7 @@ export default function PaginaProductos() {
     mates: "Nuestros Mates",
     termos: "Nuestros Termos",
     bombillas: "Nuestras Bombillas",
+    yerbas: "Nuestras Yerbas",
     otros: "Otros Productos",
   };
 
@@ -18,6 +19,7 @@ export default function PaginaProductos() {
     { nombre: "Mates", path: "/productos/mates" },
     { nombre: "Termos", path: "/productos/termos" },
     { nombre: "Bombillas", path: "/productos/bombillas" },
+    { nombre: "Yerbas", path: "/productos/yerbas" },
     { nombre: "Otros", path: "/productos/otros" },
   ];
 

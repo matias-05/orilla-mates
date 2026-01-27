@@ -13,12 +13,18 @@ const categorias = [
     imagen: "/bombillas.webp",
     path: "/productos/bombillas",
   },
-  { id: 4, nombre: "Otros", imagen: "/otros.webp", path: "/productos/otros" },
+  {
+    id: 4,
+    nombre: "Yerbas",
+    imagen: "/yerbas.webp",
+    path: "/productos/yerbas",
+  },
+  { id: 5, nombre: "Otros", imagen: "/otros.webp", path: "/productos/otros" },
 ];
 
 export default function CardCategorias() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 w-full">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-8 w-full">
       {categorias.map((cat) => (
         <Link
           key={cat.id}
