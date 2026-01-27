@@ -27,51 +27,75 @@ export default function Navbar() {
       return;
     }
 
-    const observerOptions = {
-      root: null,
-      rootMargin: "-50% 0px -50% 0px",
-      threshold: 0,
-    };
+    let observer;
+    let retryCount = 0;
+    const maxRetries = 50;
 
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveHash(`#${entry.target.id}`);
+    const connectObserver = () => {
+      const sections = navLinks.map((link) => document.getElementById(link.id));
+      const foundAny = sections.some((el) => el !== null);
+
+      if (!foundAny) {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(connectObserver, 100);
         }
+        return;
+      }
+
+      const observerOptions = {
+        root: null,
+        rootMargin: "-40% 0px -40% 0px",
+        threshold: 0,
+      };
+
+      const observerCallback = (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHash(`#${entry.target.id}`);
+          }
+        });
+      };
+
+      observer = new IntersectionObserver(observerCallback, observerOptions);
+
+      sections.forEach((el) => {
+        if (el) observer.observe(el);
       });
     };
 
-    const observer = new IntersectionObserver(
-      observerCallback,
-      observerOptions,
-    );
+    connectObserver();
 
-    navLinks.forEach((link) => {
-      const element = document.getElementById(link.id);
-      if (element) observer.observe(element);
-    });
-
-    return () => observer.disconnect();
+    return () => {
+      if (observer) observer.disconnect();
+    };
   }, [location.pathname]);
 
   const checkIsActive = (link) => {
     const { pathname } = location;
-
-    if (link.name === "Productos" && pathname.startsWith("/productos")) {
+    if (link.name === "Productos" && pathname.startsWith("/productos"))
       return true;
-    }
-
-    if (pathname === "/") {
-      return activeHash === `#${link.id}`;
-    }
-
+    if (pathname === "/") return activeHash === `#${link.id}`;
     return false;
   };
 
   return (
     <nav className="sticky top-0 bg-[#2F4A2F] h-[80px] w-full flex items-center justify-between px-6 md:px-12 z-[100] font-quicksand shadow-md">
-      {/* LOGO */}
-      <div className="relative w-24 h-full flex items-center">
+      <style>{`
+        @keyframes fadeInDown {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-animate {
+          opacity: 0;
+          animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+
+      <div
+        className="relative w-24 h-full flex items-center nav-animate"
+        style={{ animationDelay: "0s" }}
+      >
         <HashLink smooth to="/#inicio" aria-label="Volver al inicio">
           <img
             src="/logo-orilla.webp"
@@ -84,17 +108,19 @@ export default function Navbar() {
       </div>
 
       <div className="hidden md:flex items-center gap-8 text-[#E8D6B3] text-sm tracking-widest font-medium">
-        {navLinks.map((link) => {
+        {navLinks.map((link, index) => {
           const isActive = checkIsActive(link);
+          const delay = `${0.1 + index * 0.1}s`;
 
           return (
             <HashLink
               key={link.name}
               smooth
               to={link.to}
-              className={`relative py-1 transition-colors group ${
+              className={`relative py-1 transition-colors group nav-animate ${
                 isActive ? "text-[#F2E4C9] font-bold" : "hover:text-[#F2E4C9]"
               }`}
+              style={{ animationDelay: delay }}
             >
               {link.name}
               <span
@@ -110,7 +136,10 @@ export default function Navbar() {
         })}
       </div>
 
-      <div className="flex items-center gap-4 md:gap-6 text-[#E8D6B3]">
+      <div
+        className="flex items-center gap-4 md:gap-6 text-[#E8D6B3] nav-animate"
+        style={{ animationDelay: "0.5s" }}
+      >
         <div className="relative cursor-pointer hover:scale-110 transition-transform">
           <HashLink
             to="/carrito"
