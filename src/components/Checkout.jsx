@@ -112,7 +112,7 @@ export const Checkout = () => {
             paymentMethods: {
               creditCard: "all",
               debitCard: "all",
-              mercadoPago: "all",
+              mercadoPago: "none",
             },
             visual: { style: { theme: "default" } },
           }}
