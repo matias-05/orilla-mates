@@ -11,10 +11,8 @@ export const Checkout = () => {
 
   const { metodoEntrega = "retiro", direccion = "" } = location.state || {};
 
-  // 🔥 1. Estado para guardar el ID mágico
   const [preferenceId, setPreferenceId] = useState(null);
 
-  // 🔥 2. Pedimos el Preference ID al backend apenas carga el componente
   useEffect(() => {
     const createPreference = async () => {
       if (!cart || cart.length === 0) return;
@@ -49,17 +47,15 @@ export const Checkout = () => {
     createPreference();
   }, [cart]);
 
-  // 🔥 3. Inicializamos el Brick CON EL PREFERENCE ID
   const initialization = useMemo(() => {
-    if (!preferenceId) return null;
-    return { preferenceId: preferenceId };
-  }, [preferenceId]);
+    if (!preferenceId || !total) return null;
+    return {
+      amount: total,
+      preferenceId: preferenceId,
+    };
+  }, [preferenceId, total]);
 
   const onSubmit = async ({ formData }) => {
-    // Si el usuario paga con tarjeta, Mercado Pago manda el token y los datos acá.
-    // Si paga con la wallet (botón azul), este formData va vacío y MP redirige las URLs que pusimos en el backend.
-
-    // Si formData está vacío, cortamos acá porque MP manejará la redirección.
     if (!formData || !formData.payment_method_id) {
       console.log("Pago iniciado a través de Wallet. Esperando redirección...");
       return;
@@ -162,8 +158,8 @@ export const Checkout = () => {
             paymentMethods: {
               creditCard: "all",
               debitCard: "all",
-              ticket: "all", // 🔥 Agregamos Rapipago / Pago Fácil
-              mercadoPago: "all", // 🔥 Habilitamos botón de billetera MP
+              ticket: "all",
+              mercadoPago: "all",
             },
             visual: { style: { theme: "default" } },
           }}
