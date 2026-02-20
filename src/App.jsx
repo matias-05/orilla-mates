@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
+import DetallePage from "./pages/DetallePage";
 
 const Inicio = lazy(() => import("./pages/InicioPage"));
 const PaginaProductos = lazy(() => import("./pages/ProductosPage"));
@@ -52,6 +53,7 @@ function App() {
                 path="/productos/:categoria"
                 element={<PaginaProductos />}
               />
+              <Route path="/producto/:id" element={<DetallePage />} />
               <Route path="/carrito" element={<CarritoPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/checkout" element={<Checkout />} />

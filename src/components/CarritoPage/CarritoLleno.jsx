@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
@@ -10,6 +10,10 @@ export default function CarritoLleno() {
   const { cart } = useCart();
   const [showConfirm, setShowConfirm] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <section className="bg-[#F2E4C9] min-h-[calc(100dvh-80px)] font-quicksand py-8 md:py-16 px-4 md:px-12 relative">
@@ -26,7 +30,7 @@ export default function CarritoLleno() {
             Mi Carrito
           </h1>
           <NavLink
-            to="/productos/mates"
+            to="/#productos"
             aria-label="Volver al catálogo de productos"
             className="flex items-center gap-2 text-[#2F4A2F]/60 hover:text-[#2F4A2F] transition-colors text-sm font-medium"
           >

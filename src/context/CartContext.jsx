@@ -11,14 +11,75 @@ const CartContext = createContext(null);
 
 export const useCart = () => useContext(CartContext);
 
+const TIEMPO_EXPIRACION = 15 * 60 * 1000;
+
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("orilla_cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedData = localStorage.getItem("orilla_cart");
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        const ahora = new Date().getTime();
+
+        if (Array.isArray(parsedData)) return parsedData;
+
+        if (
+          parsedData.timestamp &&
+          ahora - parsedData.timestamp > TIEMPO_EXPIRACION
+        ) {
+          localStorage.removeItem("orilla_cart");
+          return [];
+        }
+
+        return parsedData.productos || [];
+      }
+    } catch (error) {
+      console.error("Error leyendo el carrito", error);
+      return [];
+    }
+    return [];
   });
 
   useEffect(() => {
-    localStorage.setItem("orilla_cart", JSON.stringify(cart));
+    const datosAGuardar = {
+      productos: cart,
+      timestamp: new Date().getTime(),
+    };
+    localStorage.setItem("orilla_cart", JSON.stringify(datosAGuardar));
+  }, [cart]);
+
+  useEffect(() => {
+    if (cart.length === 0) return;
+
+    const intervalo = setInterval(() => {
+      const savedData = localStorage.getItem("orilla_cart");
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          const ahora = new Date().getTime();
+
+          if (
+            parsedData.timestamp &&
+            ahora - parsedData.timestamp > TIEMPO_EXPIRACION
+          ) {
+            setCart([]);
+            toast.error("Tu carrito expiró por inactividad (15 min).", {
+              style: {
+                background: "#ce2a2a",
+                color: "#E8D6B3",
+                borderRadius: 0,
+                textAlign: "center",
+                border: "1px solid #E8D6B333",
+              },
+            });
+          }
+        } catch (e) {
+          console.error("Error en el intervalo de expiración", e);
+        }
+      }
+    }, 60000);
+
+    return () => clearInterval(intervalo);
   }, [cart]);
 
   const addToCart = (product) => {
@@ -26,7 +87,7 @@ export const CartProvider = ({ children }) => {
       const existingItem = prevCart.find(
         (item) =>
           item.id === product.id &&
-          item.colorSeleccionado === product.colorSeleccionado
+          item.colorSeleccionado === product.colorSeleccionado,
       );
 
       const stockDisponible =
@@ -37,7 +98,7 @@ export const CartProvider = ({ children }) => {
       if (existingItem) {
         if (existingItem.cantidad >= stockDisponible) {
           toast.error(
-            `Lo sentimos, solo hay ${stockDisponible} unidades disponibles en color ${product.colorSeleccionado}.`,
+            `Lo sentimos, solo hay ${stockDisponible} unidades disponibles.`,
             {
               style: {
                 background: "#ce2a2a",
@@ -51,7 +112,7 @@ export const CartProvider = ({ children }) => {
                 minHeight: "80px",
                 border: "1px solid #E8D6B333",
               },
-            }
+            },
           );
           return prevCart;
         }
@@ -60,7 +121,7 @@ export const CartProvider = ({ children }) => {
           item.id === product.id &&
           item.colorSeleccionado === product.colorSeleccionado
             ? { ...item, cantidad: item.cantidad + 1 }
-            : item
+            : item,
         );
       }
 
@@ -101,15 +162,15 @@ export const CartProvider = ({ children }) => {
           };
         }
         return item;
-      })
+      }),
     );
   };
 
   const removeItem = (id, color) => {
     setCart((prevCart) =>
       prevCart.filter(
-        (item) => !(item.id === id && item.colorSeleccionado === color)
-      )
+        (item) => !(item.id === id && item.colorSeleccionado === color),
+      ),
     );
   };
 

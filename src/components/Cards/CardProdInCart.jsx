@@ -39,19 +39,21 @@ export default function CardProdInCart({
           {item.nombre}
         </h3>
 
-        {item.colorSeleccionado && (
-          <div className="flex items-center gap-2 mt-1 mb-2">
-            <div
-              className="w-3 h-3 border rounded-full border-black/10 shadow-sm"
-              style={{
-                backgroundColor: getColorBackground(item.colorSeleccionado),
-              }}
-            ></div>
-            <span className="text-[14px] font-bold tracking-widest text-[#E8D6B3]/80 ">
-              {item.colorSeleccionado}
-            </span>
-          </div>
-        )}
+        {/* 🔥 ACÁ ESTÁ EL CAMBIO: Solo lo muestra si hay color y NO es "Unico" */}
+        {item.colorSeleccionado &&
+          item.colorSeleccionado.toLowerCase() !== "unico" && (
+            <div className="flex items-center gap-2 mt-1 mb-2">
+              <div
+                className="w-3 h-3 border rounded-full border-black/10 shadow-sm"
+                style={{
+                  backgroundColor: getColorBackground(item.colorSeleccionado),
+                }}
+              ></div>
+              <span className="text-[14px] font-bold tracking-widest text-[#E8D6B3]/80 ">
+                {item.colorSeleccionado}
+              </span>
+            </div>
+          )}
 
         <p className="text-[#E8D6B3] text-lg mt-1 tracking-widest font-belleza">
           ${(item.precio * item.cantidad).toLocaleString()}

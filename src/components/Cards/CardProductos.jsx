@@ -1,8 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../../firebase/config";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { useCart } from "../../context/CartContext";
-import { toast } from "sonner";
+import { useNavigate } from "react-router-dom"; // 🔥 Importamos useNavigate
 
 const normalizar = (txt) => {
   if (!txt) return "";
@@ -31,14 +30,19 @@ const obtenerStockColor = (stock, colorName) => {
         stock[colorName.toLowerCase()] ||
         stock[keyLimpia] ||
         stock["Unico"] ||
-        0
+        0,
     );
   }
   return 0;
 };
 
-function ProductoItem({ prod, addToCart, getColorBackground }) {
+// 🔥 Eliminamos el prop addToCart
+function ProductoItem({ prod, getColorBackground }) {
+  const navigate = useNavigate(); // Inicializamos el hook de navegación
   const coloresDisponibles = prod.colores || [];
+
+  // Mantenemos el estado del color solo para que el usuario pueda interactuar visualmente
+  // con la tarjeta y ver qué colores están tachados (sin stock).
   const [colorElegido, setColorElegido] = useState(coloresDisponibles[0] || "");
 
   const totalStock = useMemo(() => {
@@ -49,46 +53,13 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
     if (typeof stock === "object") {
       return Object.values(stock).reduce(
         (acc, curr) => acc + (Number(curr) || 0),
-        0
+        0,
       );
     }
     return 0;
   }, [prod.stock]);
 
   const sinStockGeneral = totalStock <= 0;
-
-  const handleAgregar = () => {
-    if (sinStockGeneral) return;
-
-    const colorParaStock = colorElegido || "Unico";
-    const stockActual = obtenerStockColor(prod.stock, colorParaStock);
-
-    if (stockActual <= 0) {
-      toast.error(
-        `No hay stock disponible ${
-          colorElegido ? `para el color ${colorElegido}` : ""
-        }`,
-        {
-          style: {
-            background: "#ce2a2a",
-            color: "#E8D6B3",
-            borderRadius: 0,
-            textAlign: "center",
-            minHeight: "80px",
-            border: "1px solid #E8D6B333",
-          },
-        }
-      );
-      return;
-    }
-
-    toast.success(`Producto agregado al carrito con éxito`);
-
-    addToCart({
-      ...prod,
-      colorSeleccionado: colorElegido || "Unico",
-    });
-  };
 
   return (
     <div
@@ -130,7 +101,7 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
         {coloresDisponibles.length > 0 && !sinStockGeneral && (
           <div className="mb-6">
             <p className="text-[11px]  tracking-widest opacity-60 mb-2">
-              Seleccionar Color:
+              Colores Disponibles:
             </p>
             <div className="flex flex-wrap gap-3">
               {coloresDisponibles.map((color) => {
@@ -178,16 +149,16 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
           </div>
         )}
 
+        {/* 🔥 Botón modificado para redirigir al detalle */}
         <button
-          onClick={handleAgregar}
-          disabled={sinStockGeneral}
+          onClick={() => navigate(`/producto/${prod.id}`)}
           className={`mt-auto py-3 px-8 cursor-pointer self-center text-sm font-medium tracking-wider w-full shadow-lg transition-all ${
             sinStockGeneral
-              ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+              ? "bg-gray-600 text-[#F2E4C9] hover:bg-gray-500" // Permite ver el detalle aunque esté agotado
               : "bg-[#8B5E3C] text-[#F2E4C9] hover:bg-[#a67148] hover:shadow-xl active:scale-95"
           }`}
         >
-          {sinStockGeneral ? "Sin Stock" : "Agregar al carrito"}
+          Ver Detalle
         </button>
       </div>
     </div>
@@ -197,7 +168,6 @@ function ProductoItem({ prod, addToCart, getColorBackground }) {
 export default function CardProductos({ categoria, filtro }) {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
 
   const getColorBackground = (color) => {
     if (!color) return "transparent";
@@ -214,7 +184,7 @@ export default function CardProductos({ categoria, filtro }) {
       try {
         const q = query(
           collection(db, "catalogo"),
-          where("categoria", "==", categoria)
+          where("categoria", "==", categoria),
         );
         const querySnapshot = await getDocs(q);
         const data = querySnapshot.docs.map((doc) => ({
@@ -249,7 +219,6 @@ export default function CardProductos({ categoria, filtro }) {
         <ProductoItem
           key={prod.id}
           prod={prod}
-          addToCart={addToCart}
           getColorBackground={getColorBackground}
         />
       ))}
