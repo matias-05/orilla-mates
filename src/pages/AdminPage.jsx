@@ -1,14 +1,48 @@
 import { useState, useEffect, useMemo } from "react";
 import { db } from "../firebase/config";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
-import { Edit, Package, DollarSign, Search, Loader2 } from "lucide-react";
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+  deleteDoc,
+  addDoc,
+} from "firebase/firestore";
+import {
+  Edit,
+  Package,
+  DollarSign,
+  Search,
+  Loader2,
+  Trash2,
+  PlusCircle,
+  UploadCloud,
+  Tag,
+  Image as ImageIcon,
+} from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminPage() {
   const [productos, setProductos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ precio: 0, stock: {} });
+  const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  const [editForm, setEditForm] = useState({
+    nombre: "",
+    precio: 0,
+    imagen: "",
+    categoria: "mates",
+    descripcion: "",
+    stock: {},
+    colores: [],
+    imagenes: {},
+  });
 
   useEffect(() => {
     const fetchProductos = async () => {
@@ -30,34 +64,143 @@ export default function AdminPage() {
 
   const productosFiltrados = useMemo(() => {
     return productos.filter((prod) =>
-      prod.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+      prod.nombre?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [searchTerm, productos]);
 
-  const handleEditClick = (prod) => {
-    setEditingId(prod.id);
+  const resetForm = () => {
+    setImageFile(null);
+    setImagePreview(null);
     setEditForm({
-      precio: prod.precio || 0,
-      stock:
-        typeof prod.stock === "object"
-          ? { ...prod.stock }
-          : { Único: prod.stock },
+      nombre: "",
+      precio: 0,
+      imagen: "",
+      categoria: "mates",
+      descripcion: "",
+      stock: { Único: 0 },
+      colores: [],
+      imagenes: {},
     });
   };
 
-  const handleSave = async (id) => {
+  const handleEditClick = (prod) => {
+    setIsCreating(false);
+    setEditingId(prod.id);
+    setImageFile(null);
+    setImagePreview(prod.imagen || null);
+    setEditForm({
+      nombre: prod.nombre || "",
+      precio: prod.precio || 0,
+      imagen: prod.imagen || "",
+      categoria: prod.categoria || "mates",
+      descripcion: prod.descripcion || "",
+      stock:
+        typeof prod.stock === "object"
+          ? { ...prod.stock }
+          : { Único: prod.stock || 0 },
+      colores: prod.colores || [],
+      imagenes: prod.imagenes || {},
+    });
+  };
+
+  const handleCreateNewClick = () => {
+    setEditingId(null);
+    setIsCreating(true);
+    resetForm();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "orillandomates");
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/dcpxbcrdq/image/upload`;
+
+    const res = await fetch(cloudinaryUrl, { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Error al subir a Cloudinary");
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleColorImageUpload = async (color, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    toast.info(`Subiendo foto para color ${color}...`);
     try {
-      const docRef = doc(db, "catalogo", id);
-      await updateDoc(docRef, {
-        precio: Number(editForm.precio),
-        stock: editForm.stock,
-      });
-      setProductos(
-        productos.map((p) => (p.id === id ? { ...p, ...editForm } : p))
-      );
-      setEditingId(null);
+      const url = await uploadToCloudinary(file);
+      setEditForm((prev) => ({
+        ...prev,
+        imagenes: { ...(prev.imagenes || {}), [color]: url },
+      }));
+      toast.success(`¡Foto de ${color} lista!`);
     } catch (error) {
-      alert("Error al guardar");
+      toast.error(`Error al subir la foto de ${color}`);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsUploading(true);
+    try {
+      let finalImageUrl = editForm.imagen;
+
+      if (imageFile) {
+        finalImageUrl = await uploadToCloudinary(imageFile);
+      }
+
+      const dataToSave = {
+        ...editForm,
+        precio: Number(editForm.precio),
+        imagen: finalImageUrl,
+      };
+
+      if (isCreating) {
+        const docRef = await addDoc(collection(db, "catalogo"), dataToSave);
+        setProductos([...productos, { id: docRef.id, ...dataToSave }]);
+        toast.success("Producto creado exitosamente");
+      } else {
+        const docRef = doc(db, "catalogo", editingId);
+        await updateDoc(docRef, dataToSave);
+        setProductos(
+          productos.map((p) =>
+            p.id === editingId ? { ...p, ...dataToSave } : p,
+          ),
+        );
+        toast.success("Producto actualizado");
+      }
+
+      setEditingId(null);
+      setIsCreating(false);
+      resetForm();
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      toast.error("Error al guardar el producto");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async (id, nombre) => {
+    if (
+      window.confirm(
+        `¿Estás seguro de que quieres eliminar "${nombre}"? Esta acción no se puede deshacer.`,
+      )
+    ) {
+      try {
+        await deleteDoc(doc(db, "catalogo", id));
+        setProductos(productos.filter((p) => p.id !== id));
+        toast.success("Producto eliminado");
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        toast.error("Error al eliminar el producto");
+      }
     }
   };
 
@@ -78,21 +221,32 @@ export default function AdminPage() {
               Administración
             </h1>
             <p className="text-[#2F4A2F]/60 uppercase tracking-widest text-[10px] font-bold mt-1">
-              Orilla Mates - Control de Stock
+              Orilla Mates - Gestión de Catálogo
             </p>
           </div>
-          <div className="relative w-full md:w-80">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2F4A2F]/40"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Buscar por nombre..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/80 rounded-2xl border border-[#2F4A2F]/10 focus:ring-2 focus:ring-[#2F4A2F] outline-none transition-all shadow-sm"
-            />
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-80">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2F4A2F]/40"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder="Buscar por nombre..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white/80 rounded-2xl border border-[#2F4A2F]/10 focus:ring-2 focus:ring-[#2F4A2F] outline-none transition-all shadow-sm"
+              />
+            </div>
+            <button
+              onClick={handleCreateNewClick}
+              className="flex items-center justify-center gap-2 bg-[#2F4A2F] text-[#F2E4C9] px-6 py-3 rounded-2xl shadow-md hover:bg-[#1f331f] transition-colors"
+            >
+              <PlusCircle size={20} />
+              <span className="font-bold tracking-wider text-sm">
+                Nuevo Mate
+              </span>
+            </button>
           </div>
         </header>
 
@@ -105,7 +259,7 @@ export default function AdminPage() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
                   <img
-                    src={prod.imagen}
+                    src={prod.imagen || "/logo-orilla.png"}
                     className="w-14 h-14 rounded-2xl object-cover bg-white shadow-sm"
                   />
                   <div>
@@ -113,55 +267,23 @@ export default function AdminPage() {
                       {prod.nombre}
                     </h3>
                     <p className="text-[#8B5E3C] font-black text-xl mt-1">
-                      ${prod.precio.toLocaleString()}
+                      ${Number(prod.precio).toLocaleString()}
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleEditClick(prod)}
-                  className="bg-[#2F4A2F] text-white p-3 rounded-2xl shadow-md active:scale-90 transition-transform"
-                >
-                  <Edit size={20} />
-                </button>
-              </div>
-
-              <div className="bg-white/40 rounded-2xl p-3 border border-white/50">
-                <p className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-2 tracking-widest">
-                  Disponibilidad:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {typeof prod.stock === "object" ? (
-                    Object.entries(prod.stock).map(([color, cant]) => (
-                      <div
-                        key={color}
-                        className="bg-white px-3 py-1.5 rounded-xl border border-[#2F4A2F]/5 shadow-sm flex items-center gap-2"
-                      >
-                        <span className="text-[11px] font-bold text-[#2F4A2F] uppercase">
-                          {color}
-                        </span>
-                        <span
-                          className={`text-sm font-black ${
-                            cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
-                          }`}
-                        >
-                          {cant}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bg-white px-3 py-1.5 rounded-xl border border-[#2F4A2F]/5 shadow-sm flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-[#2F4A2F] uppercase">
-                        Stock:
-                      </span>
-                      <span
-                        className={`text-sm font-black ${
-                          prod.stock <= 3 ? "text-red-500" : "text-[#8B5E3C]"
-                        }`}
-                      >
-                        {prod.stock}
-                      </span>
-                    </div>
-                  )}
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => handleEditClick(prod)}
+                    className="bg-[#2F4A2F] text-white p-2 rounded-xl shadow-md active:scale-90 transition-transform"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(prod.id, prod.nombre)}
+                    className="bg-red-100 text-red-600 p-2 rounded-xl border border-red-200 shadow-sm active:scale-90 transition-transform"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -184,11 +306,17 @@ export default function AdminPage() {
                   key={prod.id}
                   className="hover:bg-white/60 transition-colors"
                 >
-                  <td className="p-6 font-bold text-[#2F4A2F]">
-                    {prod.nombre}
+                  <td className="p-4 flex items-center gap-3">
+                    <img
+                      src={prod.imagen || "/logo-orilla.png"}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                    <span className="font-bold text-[#2F4A2F]">
+                      {prod.nombre}
+                    </span>
                   </td>
                   <td className="p-6 text-[#8B5E3C] font-black text-base">
-                    ${prod.precio.toLocaleString()}
+                    ${Number(prod.precio).toLocaleString()}
                   </td>
                   <td className="p-6">
                     <div className="flex flex-wrap gap-2">
@@ -225,12 +353,20 @@ export default function AdminPage() {
                     </div>
                   </td>
                   <td className="p-6 text-center">
-                    <button
-                      onClick={() => handleEditClick(prod)}
-                      className="bg-[#2F4A2F] text-white p-2.5 rounded-xl hover:bg-[#8B5E3C] shadow-md"
-                    >
-                      <Edit size={18} />
-                    </button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleEditClick(prod)}
+                        className="bg-[#2F4A2F] text-white p-2.5 rounded-xl hover:bg-[#8B5E3C] shadow-md transition-colors"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(prod.id, prod.nombre)}
+                        className="bg-white text-red-500 p-2.5 rounded-xl border border-red-100 hover:bg-red-50 hover:text-red-600 shadow-sm transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -239,86 +375,214 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {editingId && (
+      {/* --- MODAL DE EDICIÓN / CREACIÓN --- */}
+      {(editingId || isCreating) && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-[#2F4A2F]/60 backdrop-blur-md">
-          <div className="bg-[#F2E4C9] w-full max-w-md p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl border border-white animate-in slide-in-from-bottom duration-300">
-            <div className="w-12 h-1.5 bg-[#2F4A2F]/10 rounded-full mx-auto mb-6 md:hidden"></div>
+          <div className="bg-[#F2E4C9] w-full max-w-2xl p-6 md:p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl border border-white animate-in slide-in-from-bottom duration-300">
+            <div className="w-12 h-1.5 bg-[#2F4A2F]/10 rounded-full mx-auto mb-4 md:hidden"></div>
             <h2 className="font-belleza text-2xl text-[#2F4A2F] mb-6 flex items-center gap-2 uppercase tracking-tight">
-              Actualizar
+              {isCreating ? "Crear Nuevo Producto" : "Actualizar Producto"}
             </h2>
 
-            <div className="space-y-6 overflow-y-auto max-h-[60vh] px-1 custom-scrollbar">
-              <div>
+            <div className="space-y-4 overflow-y-auto max-h-[65vh] px-2 custom-scrollbar">
+              {/* Foto Principal */}
+              <div className="mb-4">
                 <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-2 block">
-                  Precio ($)
+                  Foto Principal (Por Defecto)
                 </label>
-                <div className="relative">
-                  <DollarSign
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2F4A2F]/30"
-                    size={18}
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    value={editForm.precio}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        precio: Math.max(0, e.target.value),
-                      })
-                    }
-                    className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl shadow-inner font-bold text-[#2F4A2F] border-none focus:ring-2 focus:ring-[#8B5E3C]"
-                  />
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-[#2F4A2F]/30 bg-white flex items-center justify-center overflow-hidden shrink-0">
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <UploadCloud className="text-[#2F4A2F]/30" size={32} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#2F4A2F] border border-[#2F4A2F]/20 rounded-xl font-bold text-sm cursor-pointer hover:bg-black/5 transition-colors shadow-sm"
+                    >
+                      <UploadCloud size={16} /> Subir principal
+                    </label>
+                  </div>
                 </div>
               </div>
 
+              {/* Datos Generales */}
               <div>
-                <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-3 block">
-                  Stock
+                <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-1 block">
+                  Nombre
                 </label>
+                <input
+                  type="text"
+                  value={editForm.nombre}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, nombre: e.target.value })
+                  }
+                  className="w-full px-4 py-3 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none focus:ring-2 focus:ring-[#8B5E3C]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-1 block">
+                    Precio ($)
+                  </label>
+                  <div className="relative">
+                    <DollarSign
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2F4A2F]/30"
+                      size={18}
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      value={editForm.precio}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          precio: Math.max(0, e.target.value),
+                        })
+                      }
+                      className="w-full pl-12 pr-4 py-3 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none focus:ring-2 focus:ring-[#8B5E3C]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-1 block">
+                    Categoría
+                  </label>
+                  <div className="relative">
+                    <Tag
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2F4A2F]/30"
+                      size={18}
+                    />
+                    <select
+                      value={editForm.categoria}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, categoria: e.target.value })
+                      }
+                      className="w-full pl-12 pr-4 py-3 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none focus:ring-2 focus:ring-[#8B5E3C] appearance-none"
+                    >
+                      <option value="mates">Mates</option>
+                      <option value="termos">Termos</option>
+                      <option value="bombillas">Bombillas</option>
+                      <option value="accesorios">Accesorios</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 🔥 STOCK E IMÁGENES SECUNDARIAS */}
+              <div>
+                <div className="flex justify-between items-center mb-2 mt-4">
+                  <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 block">
+                    Stock y Fotos por Color
+                  </label>
+                </div>
                 <div className="grid grid-cols-1 gap-3">
                   {Object.entries(editForm.stock).map(([color, cant]) => (
                     <div
                       key={color}
-                      className="flex items-center justify-between bg-white/60 p-4 rounded-2xl border border-white"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 p-3 rounded-xl border border-white gap-3"
                     >
-                      <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2">
-                        <Package size={16} className="text-[#8B5E3C]" /> {color}
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={cant}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setEditForm({
-                            ...editForm,
-                            stock: {
-                              ...editForm.stock,
-                              [color]: val < 0 ? 0 : val,
-                            },
-                          });
-                        }}
-                        className="w-20 text-right font-black text-[#8B5E3C] bg-transparent outline-none text-xl"
-                      />
+                      {/* Info de Stock */}
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2 text-sm w-24">
+                          <Package size={14} className="text-[#8B5E3C]" />{" "}
+                          {color}
+                        </span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={cant}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setEditForm({
+                              ...editForm,
+                              stock: {
+                                ...editForm.stock,
+                                [color]: val < 0 ? 0 : val,
+                              },
+                            });
+                          }}
+                          className="w-16 text-center font-black text-[#8B5E3C] bg-white rounded p-2 outline-none focus:ring-1 focus:ring-[#2F4A2F] shadow-inner"
+                        />
+                      </div>
+
+                      {/* Botón de subida para ESTE color */}
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        {editForm.imagenes?.[color] ? (
+                          <img
+                            src={editForm.imagenes[color]}
+                            alt={color}
+                            className="w-10 h-10 rounded border object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded border border-dashed border-gray-400 flex items-center justify-center">
+                            <ImageIcon size={14} className="text-gray-400" />
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleColorImageUpload(color, e)}
+                          className="hidden"
+                          id={`upload-${color}`}
+                        />
+                        <label
+                          htmlFor={`upload-${color}`}
+                          className="text-[10px] font-bold bg-[#8B5E3C]/10 text-[#8B5E3C] px-3 py-2 rounded-lg cursor-pointer hover:bg-[#8B5E3C]/20 transition-colors"
+                        >
+                          Subir foto
+                        </label>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-4 mt-8">
+            <div className="flex gap-4 mt-6 pt-4 border-t border-[#2F4A2F]/10">
               <button
-                onClick={() => setEditingId(null)}
-                className="flex-1 py-4 text-[#2F4A2F] font-black text-[11px] tracking-widest uppercase"
+                onClick={() => {
+                  setEditingId(null);
+                  setIsCreating(false);
+                  resetForm();
+                }}
+                disabled={isUploading}
+                className="flex-1 py-3 text-[#2F4A2F] font-black text-xs tracking-widest uppercase hover:bg-black/5 rounded-xl transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
-                onClick={() => handleSave(editingId)}
-                className="flex-1 py-4 bg-[#2F4A2F] text-[#F2E4C9] rounded-2xl font-black text-[11px] tracking-widest shadow-lg uppercase"
+                onClick={handleSave}
+                disabled={
+                  !editForm.nombre || editForm.precio <= 0 || isUploading
+                }
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#2F4A2F] text-[#F2E4C9] rounded-xl font-black text-xs tracking-widest shadow-md uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#1f331f] transition-colors"
               >
-                Guardar
+                {isUploading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={16} /> Guardando...
+                  </>
+                ) : isCreating ? (
+                  "Crear Producto"
+                ) : (
+                  "Guardar Cambios"
+                )}
               </button>
             </div>
           </div>

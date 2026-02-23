@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { db } from "../../firebase/config";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { useNavigate } from "react-router-dom"; // 🔥 Importamos useNavigate
+import { useNavigate } from "react-router-dom";
 
 const normalizar = (txt) => {
   if (!txt) return "";
@@ -14,7 +14,6 @@ const normalizar = (txt) => {
 
 const obtenerStockColor = (stock, colorName) => {
   if (stock === undefined || stock === null) return 0;
-
   if (typeof stock === "number") return stock;
   if (typeof stock === "string") return parseInt(stock, 10) || 0;
 
@@ -36,13 +35,13 @@ const obtenerStockColor = (stock, colorName) => {
   return 0;
 };
 
-// 🔥 Eliminamos el prop addToCart
+// -------------------------------------------------------------
+// COMPONENTE 1: La tarjeta individual del producto
+// -------------------------------------------------------------
 function ProductoItem({ prod, getColorBackground }) {
-  const navigate = useNavigate(); // Inicializamos el hook de navegación
+  const navigate = useNavigate();
   const coloresDisponibles = prod.colores || [];
 
-  // Mantenemos el estado del color solo para que el usuario pueda interactuar visualmente
-  // con la tarjeta y ver qué colores están tachados (sin stock).
   const [colorElegido, setColorElegido] = useState(coloresDisponibles[0] || "");
 
   const totalStock = useMemo(() => {
@@ -61,6 +60,33 @@ function ProductoItem({ prod, getColorBackground }) {
 
   const sinStockGeneral = totalStock <= 0;
 
+  // 🔥 LÓGICA PARA ARCHIVOS LOCALES: Agrega sufijos al nombre del archivo
+  const imagenMostrada = useMemo(() => {
+    if (!prod.imagen) return "/logo-orilla.png";
+
+    if (prod.imagenes && prod.imagenes[colorElegido]) {
+      return prod.imagenes[colorElegido];
+    }
+
+    if (colorElegido) {
+      const colorNorm = normalizar(colorElegido);
+
+      const sufijos = {
+        borravino: "B",
+        negro: "N",
+        marron: "M",
+      };
+
+      const letraAgregada = sufijos[colorNorm];
+
+      if (letraAgregada) {
+        return prod.imagen.replace(/(\.[\w\d_-]+)$/i, `${letraAgregada}$1`);
+      }
+    }
+
+    return prod.imagen;
+  }, [colorElegido, prod.imagen, prod.imagenes]);
+
   return (
     <div
       className={`flex flex-col shadow-xl transition-all duration-300 overflow-hidden h-full bg-[#2F4A2F] ${
@@ -76,12 +102,12 @@ function ProductoItem({ prod, getColorBackground }) {
           </div>
         )}
 
-        <div className="aspect-square w-full overflow-hidden bg-white/5">
+        <div className="aspect-square w-full overflow-hidden bg-white/5 relative">
           <img
             loading="lazy"
-            src={prod.imagen || "/logo-orilla.png"}
-            alt={prod.nombre}
-            className={`w-full h-full object-cover transition-opacity ${
+            src={imagenMostrada}
+            alt={`${prod.nombre} - ${colorElegido || "General"}`}
+            className={`w-full h-full object-cover transition-all duration-300 ${
               sinStockGeneral ? "opacity-40" : "opacity-100"
             }`}
           />
@@ -149,12 +175,11 @@ function ProductoItem({ prod, getColorBackground }) {
           </div>
         )}
 
-        {/* 🔥 Botón modificado para redirigir al detalle */}
         <button
           onClick={() => navigate(`/producto/${prod.id}`)}
           className={`mt-auto py-3 px-8 cursor-pointer self-center text-sm font-medium tracking-wider w-full shadow-lg transition-all ${
             sinStockGeneral
-              ? "bg-gray-600 text-[#F2E4C9] hover:bg-gray-500" // Permite ver el detalle aunque esté agotado
+              ? "bg-gray-600 text-[#F2E4C9] hover:bg-gray-500"
               : "bg-[#8B5E3C] text-[#F2E4C9] hover:bg-[#a67148] hover:shadow-xl active:scale-95"
           }`}
         >
@@ -165,6 +190,9 @@ function ProductoItem({ prod, getColorBackground }) {
   );
 }
 
+// -------------------------------------------------------------
+// COMPONENTE 2: El contenedor principal (ESTO ES LO QUE FALTABA)
+// -------------------------------------------------------------
 export default function CardProductos({ categoria, filtro }) {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);

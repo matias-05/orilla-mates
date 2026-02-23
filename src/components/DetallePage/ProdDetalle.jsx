@@ -56,6 +56,39 @@ export default function ProdDetalle({ producto }) {
 
   const sinStock = stockDisponible <= 0;
 
+  const imagenMostrada = useMemo(() => {
+    if (!producto.imagen) return "/logo-orilla.png";
+
+    if (
+      producto.imagenes &&
+      typeof producto.imagenes === "object" &&
+      colorElegido
+    ) {
+      const colorKey = Object.keys(producto.imagenes).find(
+        (k) => normalizar(k) === normalizar(colorElegido),
+      );
+      if (colorKey && producto.imagenes[colorKey]) {
+        return producto.imagenes[colorKey];
+      }
+    }
+
+    if (colorElegido) {
+      const colorNorm = normalizar(colorElegido);
+      const sufijos = {
+        borravino: "B",
+        negro: "N",
+        marron: "M",
+      };
+
+      const letraAgregada = sufijos[colorNorm];
+      if (letraAgregada) {
+        return producto.imagen.replace(/(\.[\w\d_-]+)$/i, `${letraAgregada}$1`);
+      }
+    }
+
+    return producto.imagen;
+  }, [colorElegido, producto.imagen, producto.imagenes]);
+
   const handleAgregarAlCarrito = () => {
     if (sinStock) return;
 
@@ -104,9 +137,9 @@ export default function ProdDetalle({ producto }) {
               </div>
             )}
             <img
-              src={producto.imagen || "/logo-orilla.png"}
-              alt={producto.nombre}
-              className={`w-full h-full object-cover transition-all ${
+              src={imagenMostrada}
+              alt={`${producto.nombre} ${colorElegido}`}
+              className={`w-full h-full object-cover transition-all duration-300 ${
                 sinStock ? "opacity-60 grayscale" : ""
               }`}
             />
