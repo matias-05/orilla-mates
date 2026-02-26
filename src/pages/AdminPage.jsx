@@ -485,6 +485,22 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {/* 🔥 CAMPO DE DESCRIPCIÓN AGREGADO */}
+              <div>
+                <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-1 block">
+                  Descripción
+                </label>
+                <textarea
+                  value={editForm.descripcion}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, descripcion: e.target.value })
+                  }
+                  rows={3}
+                  className="w-full px-4 py-3 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none focus:ring-2 focus:ring-[#8B5E3C] resize-y"
+                  placeholder="Detalles del producto, materiales, tamaño..."
+                />
+              </div>
+
               {/* 🔥 STOCK E IMÁGENES SECUNDARIAS */}
               <div>
                 <div className="flex justify-between items-center mb-2 mt-4">
