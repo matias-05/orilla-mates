@@ -119,29 +119,27 @@ export const Checkout = () => {
   if (!initialization) {
     return (
       <div className="h-[calc(100vh-80px)] flex items-center justify-center bg-[#F2E4C9] px-4">
-        <div className="max-w-md w-full bg-[#2F4A2F] p-10 text-center shadow-2xl border border-[#E8D6B3]/20">
-          {cart.length === 0 ? (
-            <>
-              <ShoppingBag
-                size={48}
-                className="text-[#E8D6B3] mx-auto mb-6 opacity-50"
-              />
-              <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest uppercase mb-4">
-                No hay productos
-              </h2>
-              <Link
-                to="/#productos"
-                className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
-              >
-                <ArrowLeft size={14} /> Volver al inicio
-              </Link>
-            </>
-          ) : (
-            <div className="text-[#E8D6B3] font-quicksand font-bold animate-pulse text-lg">
-              Preparando pasarela de pago segura...
-            </div>
-          )}
-        </div>
+        {cart.length === 0 ? (
+          <div className="max-w-md w-full bg-[#2F4A2F] p-10 text-center shadow-2xl border border-[#E8D6B3]/20">
+            <ShoppingBag
+              size={48}
+              className="text-[#E8D6B3] mx-auto mb-6 opacity-50"
+            />
+            <h2 className="font-belleza text-[#E8D6B3] text-2xl tracking-widest uppercase mb-4">
+              No hay productos
+            </h2>
+            <Link
+              to="/#productos"
+              className="inline-flex items-center gap-2 bg-[#E8D6B3] text-[#2F4A2F] px-8 py-4 font-bold text-[10px] tracking-[0.3em] uppercase hover:bg-white transition-colors"
+            >
+              <ArrowLeft size={14} /> Volver al inicio
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F4A2F]"></div>
+          </div>
+        )}
       </div>
     );
   }
