@@ -107,18 +107,18 @@ const CompraExitosa = () => {
       const mensajeFinal = encodeURIComponent(
         textoBase + textoEncabezado + detalleItems + textoTotal + textoCierre,
       );
-      window.open(
-        `https://wa.me/${TELEFONO_DUEÑO}?text=${mensajeFinal}`,
-        "_blank",
-      );
+
+      const telLimpio = TELEFONO_DUEÑO?.replace(/\D/g, "");
+      const urlWhatsApp = `https://wa.me/${telLimpio}?text=${mensajeFinal}`;
 
       clearCart();
       setTicketEnviado(true);
       window.history.replaceState({}, document.title);
+
+      window.location.href = urlWhatsApp;
     } catch (error) {
       console.error("Error:", error);
       toast.error(`Error al procesar el pedido`);
-    } finally {
       setIsProcessing(false);
     }
   };
