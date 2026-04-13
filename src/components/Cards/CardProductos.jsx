@@ -35,9 +35,6 @@ const obtenerStockColor = (stock, colorName) => {
   return 0;
 };
 
-// -------------------------------------------------------------
-// COMPONENTE 1: La tarjeta individual del producto
-// -------------------------------------------------------------
 function ProductoItem({ prod, getColorBackground }) {
   const navigate = useNavigate();
   const coloresDisponibles = prod.colores || [];
@@ -60,7 +57,6 @@ function ProductoItem({ prod, getColorBackground }) {
 
   const sinStockGeneral = totalStock <= 0;
 
-  // 🔥 LÓGICA PARA ARCHIVOS LOCALES: Agrega sufijos al nombre del archivo
   const imagenMostrada = useMemo(() => {
     if (!prod.imagen) return "/logo-orilla.png";
 
@@ -124,57 +120,6 @@ function ProductoItem({ prod, getColorBackground }) {
           </span>
         </div>
 
-        {coloresDisponibles.length > 0 && !sinStockGeneral && (
-          <div className="mb-6">
-            <p className="text-[11px]  tracking-widest opacity-60 mb-2">
-              Colores Disponibles:
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {coloresDisponibles.map((color) => {
-                const stockEsteColor = obtenerStockColor(prod.stock, color);
-                const sinStockColor = stockEsteColor <= 0;
-
-                return (
-                  <button
-                    key={color}
-                    disabled={sinStockColor}
-                    onClick={() => setColorElegido(color)}
-                    className={`group relative flex flex-col items-center gap-1 transition-all ${
-                      sinStockColor
-                        ? "opacity-30 cursor-not-allowed"
-                        : "cursor-pointer"
-                    } ${
-                      colorElegido === color
-                        ? "scale-110"
-                        : "opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        colorElegido === color
-                          ? "border-[#F2E4C9]"
-                          : "border-transparent"
-                      }`}
-                      style={{ backgroundColor: getColorBackground(color) }}
-                    >
-                      {sinStockColor && (
-                        <div className="absolute w-full h-[1px] bg-white rotate-45"></div>
-                      )}
-                    </div>
-                    <span
-                      className={`text-[10px] font-medium tracking-tighter ${
-                        sinStockColor ? "line-through" : ""
-                      }`}
-                    >
-                      {color}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         <button
           onClick={() => navigate(`/producto/${prod.id}`)}
           className={`mt-auto py-3 px-8 cursor-pointer self-center text-sm font-medium tracking-wider w-full shadow-lg transition-all ${
@@ -190,21 +135,9 @@ function ProductoItem({ prod, getColorBackground }) {
   );
 }
 
-// -------------------------------------------------------------
-// COMPONENTE 2: El contenedor principal (ESTO ES LO QUE FALTABA)
-// -------------------------------------------------------------
 export default function CardProductos({ categoria, filtro }) {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const getColorBackground = (color) => {
-    if (!color) return "transparent";
-    const c = normalizar(color);
-    if (c === "negro") return "black";
-    if (c === "borravino") return "#4A0E0E";
-    if (c === "marron") return "#5C3D2E";
-    return "#5C3D2E";
-  };
 
   useEffect(() => {
     const obtenerProductos = async () => {
@@ -244,11 +177,7 @@ export default function CardProductos({ categoria, filtro }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10">
       {productosFiltrados.map((prod) => (
-        <ProductoItem
-          key={prod.id}
-          prod={prod}
-          getColorBackground={getColorBackground}
-        />
+        <ProductoItem key={prod.id} prod={prod} />
       ))}
     </div>
   );
