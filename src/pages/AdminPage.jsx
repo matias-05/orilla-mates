@@ -476,10 +476,10 @@ export default function AdminPage() {
                       }
                       className="w-full pl-12 pr-4 py-3 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none focus:ring-2 focus:ring-[#8B5E3C] appearance-none"
                     >
-                      <option value="mates">Mates</option>
-                      <option value="termos">Termos</option>
-                      <option value="bombillas">Bombillas</option>
-                      <option value="accesorios">Accesorios</option>
+                      <option value="Mates">Mates</option>
+                      <option value="Termos">Termos</option>
+                      <option value="Bombillas">Bombillas</option>
+                      <option value="Accesorios">Accesorios</option>
                     </select>
                   </div>
                 </div>
