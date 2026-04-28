@@ -375,7 +375,6 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* --- MODAL DE EDICIÓN / CREACIÓN --- */}
       {(editingId || isCreating) && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-[#2F4A2F]/60 backdrop-blur-md">
           <div className="bg-[#F2E4C9] w-full max-w-2xl p-6 md:p-8 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl border border-white animate-in slide-in-from-bottom duration-300">
@@ -385,7 +384,6 @@ export default function AdminPage() {
             </h2>
 
             <div className="space-y-4 overflow-y-auto max-h-[65vh] px-2 custom-scrollbar">
-              {/* Foto Principal */}
               <div className="mb-4">
                 <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-2 block">
                   Foto Principal (Por Defecto)
@@ -420,7 +418,6 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Datos Generales */}
               <div>
                 <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-1 block">
                   Nombre
@@ -485,7 +482,6 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* 🔥 CAMPO DE DESCRIPCIÓN AGREGADO */}
               <div>
                 <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-1 block">
                   Descripción
@@ -501,7 +497,6 @@ export default function AdminPage() {
                 />
               </div>
 
-              {/* 🔥 STOCK E IMÁGENES SECUNDARIAS */}
               <div>
                 <div className="flex justify-between items-center mb-2 mt-4">
                   <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 block">
@@ -514,7 +509,6 @@ export default function AdminPage() {
                       key={color}
                       className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 p-3 rounded-xl border border-white gap-3"
                     >
-                      {/* Info de Stock */}
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2 text-sm w-24">
                           <Package size={14} className="text-[#8B5E3C]" />{" "}

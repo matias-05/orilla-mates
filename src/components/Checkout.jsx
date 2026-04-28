@@ -136,8 +136,19 @@ export const Checkout = () => {
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F4A2F]"></div>
+          <div className="flex flex-col items-center justify-center gap-6 text-center max-w-sm">
+            <div className="relative flex items-center justify-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2F4A2F]"></div>
+            </div>
+
+            <div className="space-y-2 animate-pulse">
+              <p className="font-belleza font-bold text-[#2F4A2F] text-xl tracking-widest ">
+                Espere, se están procesando los datos.
+              </p>
+              <p className="font-quicksand text-[#2F4A2F]/60  italic">
+                (Esto puede llevar varios segundos no salga del navegador)
+              </p>
+            </div>
           </div>
         )}
       </div>
