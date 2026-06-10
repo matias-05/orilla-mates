@@ -151,10 +151,10 @@ export default function CardResumen() {
               : "Envío a Domicilio"}
           </span>
 
-          <span className="text-[10px] md:text-xs font-medium italic opacity-80 text-[#E8D6B3] text-right ml-4 max-w-[150px]">
+          <span className="text-[10px] md:text-xs font-medium italic opacity-80 text-[#E8D6B3] text-right ml-4 max-w-[190px]">
             {metodoEntrega === "retiro"
               ? "Tte. Miguel Gimenez 1446"
-              : direccion || "Coordinar por WhatsApp"}
+              : direccion || "Precio a coordinar por WhatsApp"}
           </span>
         </div>
         <div className="h-px bg-white/10 my-4"></div>
