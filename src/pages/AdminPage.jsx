@@ -33,13 +33,16 @@ export default function AdminPage() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
+  const [tipoColor, setTipoColor] = useState("unico");
+  const [nuevoColor, setNuevoColor] = useState("");
+
   const [editForm, setEditForm] = useState({
     nombre: "",
     precio: 0,
     imagen: "",
-    categoria: "mates",
+    categoria: "Mates",
     descripcion: "",
-    stock: {},
+    stock: { Único: 0 },
     colores: [],
     imagenes: {},
   });
@@ -71,11 +74,13 @@ export default function AdminPage() {
   const resetForm = () => {
     setImageFile(null);
     setImagePreview(null);
+    setTipoColor("unico");
+    setNuevoColor("");
     setEditForm({
       nombre: "",
       precio: 0,
       imagen: "",
-      categoria: "mates",
+      categoria: "Mates",
       descripcion: "",
       stock: { Único: 0 },
       colores: [],
@@ -88,16 +93,26 @@ export default function AdminPage() {
     setEditingId(prod.id);
     setImageFile(null);
     setImagePreview(prod.imagen || null);
+
+    const esVariantes = prod.colores && prod.colores.length > 0;
+    setTipoColor(esVariantes ? "varios" : "unico");
+
+    let stockInicial =
+      typeof prod.stock === "object"
+        ? { ...prod.stock }
+        : { Único: prod.stock || 0 };
+
+    if (esVariantes) {
+      delete stockInicial["Único"];
+    }
+
     setEditForm({
       nombre: prod.nombre || "",
       precio: prod.precio || 0,
       imagen: prod.imagen || "",
-      categoria: prod.categoria || "mates",
+      categoria: prod.categoria || "Mates",
       descripcion: prod.descripcion || "",
-      stock:
-        typeof prod.stock === "object"
-          ? { ...prod.stock }
-          : { Único: prod.stock || 0 },
+      stock: stockInicial,
       colores: prod.colores || [],
       imagenes: prod.imagenes || {},
     });
@@ -146,6 +161,38 @@ export default function AdminPage() {
     }
   };
 
+  const handleAddColor = () => {
+    if (!nuevoColor.trim()) return;
+    const colorLower = nuevoColor.trim().toLowerCase();
+
+    if (editForm.colores.includes(colorLower)) {
+      toast.error("Este color ya fue agregado");
+      return;
+    }
+
+    setEditForm((prev) => ({
+      ...prev,
+      colores: [...prev.colores, colorLower],
+      stock: { ...prev.stock, [colorLower]: 0 },
+    }));
+    setNuevoColor("");
+  };
+
+  const handleRemoveColor = (colorToRemove) => {
+    const newStock = { ...editForm.stock };
+    delete newStock[colorToRemove];
+
+    const newImagenes = { ...editForm.imagenes };
+    delete newImagenes[colorToRemove];
+
+    setEditForm((prev) => ({
+      ...prev,
+      colores: prev.colores.filter((c) => c !== colorToRemove),
+      stock: newStock,
+      imagenes: newImagenes,
+    }));
+  };
+
   const handleSave = async () => {
     setIsUploading(true);
     try {
@@ -155,10 +202,30 @@ export default function AdminPage() {
         finalImageUrl = await uploadToCloudinary(imageFile);
       }
 
+      const categoriaCapitalized = editForm.categoria
+        ? editForm.categoria.charAt(0).toUpperCase() +
+          editForm.categoria.slice(1).toLowerCase()
+        : "Mates";
+      let finalStock = { ...editForm.stock };
+      let finalColores = editForm.colores;
+      let finalImagenes = editForm.imagenes;
+
+      if (tipoColor === "unico") {
+        finalStock = { Único: editForm.stock.Único || 0 };
+        finalColores = [];
+        finalImagenes = {};
+      } else {
+        delete finalStock["Único"];
+      }
+
       const dataToSave = {
         ...editForm,
+        categoria: categoriaCapitalized,
         precio: Number(editForm.precio),
         imagen: finalImageUrl,
+        stock: finalStock,
+        colores: finalColores,
+        imagenes: finalImagenes,
       };
 
       if (isCreating) {
@@ -218,7 +285,7 @@ export default function AdminPage() {
         <header className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <h1 className="font-belleza text-3xl md:text-4xl text-[#2F4A2F]">
-              Administración
+              Administration
             </h1>
             <p className="text-[#2F4A2F]/60 uppercase tracking-widest text-[10px] font-bold mt-1">
               Orilla Mates - Gestión de Catálogo
@@ -254,9 +321,9 @@ export default function AdminPage() {
           {productosFiltrados.map((prod) => (
             <div
               key={prod.id}
-              className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-white shadow-lg"
+              className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-white shadow-lg space-y-3"
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start">
                 <div className="flex gap-3">
                   <img
                     src={prod.imagen || "/logo-orilla.png"}
@@ -285,6 +352,44 @@ export default function AdminPage() {
                     <Trash2 size={16} />
                   </button>
                 </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-black/5">
+                {prod.colores && prod.colores.length > 0 ? (
+                  prod.colores.map((color) => {
+                    const cant = prod.stock?.[color] || 0;
+                    return (
+                      <span
+                        key={color}
+                        className="px-2 py-1 bg-white border border-[#2F4A2F]/10 rounded-xl text-[10px] font-bold shadow-sm"
+                      >
+                        {color.toUpperCase()}:{" "}
+                        <span
+                          className={
+                            cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
+                          }
+                        >
+                          {cant}
+                        </span>
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="px-2 py-1 bg-white border border-[#2F4A2F]/10 rounded-xl text-[10px] font-bold shadow-sm">
+                    STOCK:{" "}
+                    <span
+                      className={
+                        (prod.stock?.Único ?? prod.stock) <= 3
+                          ? "text-red-500"
+                          : "text-[#8B5E3C]"
+                      }
+                    >
+                      {typeof prod.stock === "object"
+                        ? prod.stock?.Único || 0
+                        : prod.stock || 0}
+                    </span>
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -320,33 +425,38 @@ export default function AdminPage() {
                   </td>
                   <td className="p-6">
                     <div className="flex flex-wrap gap-2">
-                      {typeof prod.stock === "object" ? (
-                        Object.entries(prod.stock).map(([color, cant]) => (
-                          <span
-                            key={color}
-                            className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm"
-                          >
-                            {color.toUpperCase()}:{" "}
+                      {prod.colores && prod.colores.length > 0 ? (
+                        prod.colores.map((color) => {
+                          const cant = prod.stock?.[color] || 0;
+                          return (
                             <span
-                              className={
-                                cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
-                              }
+                              key={color}
+                              className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm"
                             >
-                              {cant}
+                              {color.toUpperCase()}:{" "}
+                              <span
+                                className={
+                                  cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
+                                }
+                              >
+                                {cant}
+                              </span>
                             </span>
-                          </span>
-                        ))
+                          );
+                        })
                       ) : (
                         <span className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm">
                           STOCK:{" "}
                           <span
                             className={
-                              prod.stock <= 3
+                              (prod.stock?.Único ?? prod.stock) <= 3
                                 ? "text-red-500"
                                 : "text-[#8B5E3C]"
                             }
                           >
-                            {prod.stock}
+                            {typeof prod.stock === "object"
+                              ? prod.stock?.Único || 0
+                              : prod.stock || 0}
                           </span>
                         </span>
                       )}
@@ -386,7 +496,7 @@ export default function AdminPage() {
             <div className="space-y-4 overflow-y-auto max-h-[65vh] px-2 custom-scrollbar">
               <div className="mb-4">
                 <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-2 block">
-                  Foto Principal (Por Defecto)
+                  Foto Principal
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-[#2F4A2F]/30 bg-white flex items-center justify-center overflow-hidden shrink-0">
@@ -497,71 +607,142 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-2 mt-4">
-                  <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 block">
-                    Stock y Fotos por Color
+              <div className="bg-white/40 p-4 rounded-2xl border border-white/60 space-y-4">
+                <label className="text-[10px] uppercase font-black text-[#2F4A2F]/60 block tracking-wider">
+                  Configuración de Color y Stock
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 font-bold text-sm text-[#2F4A2F] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="tipoColor"
+                      value="unico"
+                      checked={tipoColor === "unico"}
+                      onChange={() => setTipoColor("unico")}
+                    />
+                    Color Único
+                  </label>
+                  <label className="flex items-center gap-2 font-bold text-sm text-[#2F4A2F] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="tipoColor"
+                      value="varios"
+                      checked={tipoColor === "varios"}
+                      onChange={() => setTipoColor("varios")}
+                    />
+                    Varios Colores
                   </label>
                 </div>
-                <div className="grid grid-cols-1 gap-3">
-                  {Object.entries(editForm.stock).map(([color, cant]) => (
-                    <div
-                      key={color}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 p-3 rounded-xl border border-white gap-3"
-                    >
-                      <div className="flex items-center gap-3 w-full sm:w-auto">
-                        <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2 text-sm w-24">
-                          <Package size={14} className="text-[#8B5E3C]" />{" "}
-                          {color}
-                        </span>
-                        <input
-                          type="number"
-                          min="0"
-                          value={cant}
-                          onChange={(e) => {
-                            const val = Number(e.target.value);
-                            setEditForm({
-                              ...editForm,
-                              stock: {
-                                ...editForm.stock,
-                                [color]: val < 0 ? 0 : val,
-                              },
-                            });
-                          }}
-                          className="w-16 text-center font-black text-[#8B5E3C] bg-white rounded p-2 outline-none focus:ring-1 focus:ring-[#2F4A2F] shadow-inner"
-                        />
-                      </div>
 
-                      {/* Botón de subida para ESTE color */}
-                      <div className="flex items-center gap-3 w-full sm:w-auto">
-                        {editForm.imagenes?.[color] ? (
-                          <img
-                            src={editForm.imagenes[color]}
-                            alt={color}
-                            className="w-10 h-10 rounded border object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded border border-dashed border-gray-400 flex items-center justify-center">
-                            <ImageIcon size={14} className="text-gray-400" />
-                          </div>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleColorImageUpload(color, e)}
-                          className="hidden"
-                          id={`upload-${color}`}
-                        />
-                        <label
-                          htmlFor={`upload-${color}`}
-                          className="text-[10px] font-bold bg-[#8B5E3C]/10 text-[#8B5E3C] px-3 py-2 rounded-lg cursor-pointer hover:bg-[#8B5E3C]/20 transition-colors"
-                        >
-                          Subir foto
-                        </label>
-                      </div>
+                {tipoColor === "unico" ? (
+                  <div>
+                    <label className="text-[9px] uppercase font-bold text-[#2F4A2F]/40 mb-1 block">
+                      Cantidad Stock Color Único
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editForm.stock.Único || 0}
+                      onChange={(e) => {
+                        const val = Math.max(0, Number(e.target.value));
+                        setEditForm({
+                          ...editForm,
+                          stock: { Único: val },
+                        });
+                      }}
+                      className="w-32 px-4 py-2 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Ej. negro, rojo, verde..."
+                        value={nuevoColor}
+                        onChange={(e) => setNuevoColor(e.target.value)}
+                        className="flex-1 px-4 py-2 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none"
+                        onKeyDown={(e) => e.key === "Enter" && handleAddColor()}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddColor}
+                        className="bg-[#2F4A2F] text-[#F2E4C9] px-4 py-2 rounded-xl font-bold text-xs hover:bg-[#1f331f] transition-colors"
+                      >
+                        Agregar Color
+                      </button>
                     </div>
-                  ))}
-                </div>
+
+                    <div className="grid grid-cols-1 gap-3 mt-2 max-h-56 overflow-y-auto pr-1">
+                      {editForm.colores.map((color) => (
+                        <div
+                          key={color}
+                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 p-3 rounded-xl border border-white gap-3"
+                        >
+                          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                            <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2 text-sm w-32">
+                              <Package size={14} className="text-[#8B5E3C]" />
+                              {color}
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={editForm.stock[color] || 0}
+                              onChange={(e) => {
+                                const val = Math.max(0, Number(e.target.value));
+                                setEditForm({
+                                  ...editForm,
+                                  stock: {
+                                    ...editForm.stock,
+                                    [color]: val,
+                                  },
+                                });
+                              }}
+                              className="w-16 text-center font-black text-[#8B5E3C] bg-white rounded p-2 outline-none shadow-inner"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                            {editForm.imagenes?.[color] ? (
+                              <img
+                                src={editForm.imagenes[color]}
+                                alt={color}
+                                className="w-10 h-10 rounded border object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded border border-dashed border-gray-400 flex items-center justify-center">
+                                <ImageIcon
+                                  size={14}
+                                  className="text-gray-400"
+                                />
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleColorImageUpload(color, e)}
+                              className="hidden"
+                              id={`upload-${color}`}
+                            />
+                            <label
+                              htmlFor={`upload-${color}`}
+                              className="text-[10px] font-bold bg-[#8B5E3C]/10 text-[#8B5E3C] px-3 py-2 rounded-lg cursor-pointer hover:bg-[#8B5E3C]/20 transition-colors"
+                            >
+                              Subir foto
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveColor(color)}
+                              className="text-red-500 hover:text-red-700 p-1"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
