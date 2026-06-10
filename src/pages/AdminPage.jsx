@@ -163,17 +163,21 @@ export default function AdminPage() {
 
   const handleAddColor = () => {
     if (!nuevoColor.trim()) return;
-    const colorLower = nuevoColor.trim().toLowerCase();
 
-    if (editForm.colores.includes(colorLower)) {
+    const colorTrimmed = nuevoColor.trim();
+    const colorCapitalized =
+      colorTrimmed.charAt(0).toUpperCase() +
+      colorTrimmed.slice(1).toLowerCase();
+
+    if (editForm.colores.includes(colorCapitalized)) {
       toast.error("Este color ya fue agregado");
       return;
     }
 
     setEditForm((prev) => ({
       ...prev,
-      colores: [...prev.colores, colorLower],
-      stock: { ...prev.stock, [colorLower]: 0 },
+      colores: [...prev.colores, colorCapitalized],
+      stock: { ...prev.stock, [colorCapitalized]: 0 },
     }));
     setNuevoColor("");
   };
@@ -285,7 +289,7 @@ export default function AdminPage() {
         <header className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <h1 className="font-belleza text-3xl md:text-4xl text-[#2F4A2F]">
-              Administration
+              Administración
             </h1>
             <p className="text-[#2F4A2F]/60 uppercase tracking-widest text-[10px] font-bold mt-1">
               Orilla Mates - Gestión de Catálogo
