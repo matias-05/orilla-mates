@@ -35,7 +35,7 @@ const obtenerStockColor = (stock, colorName) => {
   return 0;
 };
 
-function ProductoItem({ prod, getColorBackground }) {
+function ProductoItem({ prod }) {
   const navigate = useNavigate();
   const coloresDisponibles = prod.colores || [];
 
@@ -60,8 +60,20 @@ function ProductoItem({ prod, getColorBackground }) {
   const imagenMostrada = useMemo(() => {
     if (!prod.imagen) return "/logo-orilla.png";
 
-    if (prod.imagenes && prod.imagenes[colorElegido]) {
-      return prod.imagenes[colorElegido];
+    if (prod.imagenes && typeof prod.imagenes === "object" && colorElegido) {
+      const colorKey = Object.keys(prod.imagenes).find(
+        (k) => normalizar(k) === normalizar(colorElegido),
+      );
+
+      if (colorKey && prod.imagenes[colorKey]) {
+        const fotos = prod.imagenes[colorKey];
+        if (Array.isArray(fotos) && fotos.length > 0) {
+          return fotos[0];
+        }
+        if (typeof fotos === "string") {
+          return fotos;
+        }
+      }
     }
 
     if (colorElegido) {

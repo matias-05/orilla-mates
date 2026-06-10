@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import { toast } from "sonner";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react";
 
 const normalizar = (txt) => {
   if (!txt) return "";
@@ -48,6 +48,11 @@ export default function ProdDetalle({ producto }) {
   const coloresDisponibles = producto.colores || [];
 
   const [colorElegido, setColorElegido] = useState(coloresDisponibles[0] || "");
+  const [imagenIndex, setImagenIndex] = useState(0);
+
+  useEffect(() => {
+    setImagenIndex(0);
+  }, [colorElegido]);
 
   const stockDisponible = useMemo(() => {
     const colorParaStock = colorElegido || "Unico";
@@ -56,8 +61,8 @@ export default function ProdDetalle({ producto }) {
 
   const sinStock = stockDisponible <= 0;
 
-  const imagenMostrada = useMemo(() => {
-    if (!producto.imagen) return "/logo-orilla.png";
+  const imagenesMostradas = useMemo(() => {
+    let arrFotos = [];
 
     if (
       producto.imagenes &&
@@ -68,32 +73,49 @@ export default function ProdDetalle({ producto }) {
         (k) => normalizar(k) === normalizar(colorElegido),
       );
       if (colorKey && producto.imagenes[colorKey]) {
-        return producto.imagenes[colorKey];
+        const fotos = producto.imagenes[colorKey];
+        arrFotos = Array.isArray(fotos) ? fotos : [fotos];
       }
+    } else if (
+      producto.imagenes &&
+      typeof producto.imagenes === "object" &&
+      producto.imagenes["Unico"]
+    ) {
+      const fotos = producto.imagenes["Unico"];
+      arrFotos = Array.isArray(fotos) ? fotos : [fotos];
     }
 
-    if (colorElegido) {
-      const colorNorm = normalizar(colorElegido);
-      const sufijos = {
-        borravino: "B",
-        negro: "N",
-        marron: "M",
-      };
-
-      const letraAgregada = sufijos[colorNorm];
-      if (letraAgregada) {
-        return producto.imagen.replace(/(\.[\w\d_-]+)$/i, `${letraAgregada}$1`);
+    if (arrFotos.length === 0) {
+      let baseImg = producto.imagen || "/logo-orilla.png";
+      if (colorElegido) {
+        const colorNorm = normalizar(colorElegido);
+        const sufijos = { borravino: "B", negro: "N", marron: "M" };
+        const letraAgregada = sufijos[colorNorm];
+        if (letraAgregada) {
+          baseImg = baseImg.replace(/(\.[\w\d_-]+)$/i, `${letraAgregada}$1`);
+        }
       }
+      arrFotos = [baseImg];
     }
 
-    return producto.imagen;
+    return arrFotos;
   }, [colorElegido, producto.imagen, producto.imagenes]);
+
+  const prevImg = () => {
+    setImagenIndex((prev) =>
+      prev === 0 ? imagenesMostradas.length - 1 : prev - 1,
+    );
+  };
+  const nextImg = () => {
+    setImagenIndex((prev) =>
+      prev === imagenesMostradas.length - 1 ? 0 : prev + 1,
+    );
+  };
 
   const handleAgregarAlCarrito = () => {
     if (sinStock) return;
 
     const colorSeleccionado = colorElegido || "Unico";
-
     const productoEnCarrito = cart.find(
       (item) =>
         item.id === producto.id && item.colorSeleccionado === colorSeleccionado,
@@ -101,20 +123,11 @@ export default function ProdDetalle({ producto }) {
     const cantidadActual = productoEnCarrito ? productoEnCarrito.cantidad : 0;
 
     if (cantidadActual >= stockDisponible) {
-      addToCart({
-        ...producto,
-        cantidad: 1,
-        colorSeleccionado,
-      });
+      addToCart({ ...producto, cantidad: 1, colorSeleccionado });
       return;
     }
 
-    addToCart({
-      ...producto,
-      cantidad: 1,
-      colorSeleccionado,
-    });
-
+    addToCart({ ...producto, cantidad: 1, colorSeleccionado });
     toast.success("¡Agregado al carrito con éxito!", {
       style: {
         background: "#2F4A2F",
@@ -127,7 +140,7 @@ export default function ProdDetalle({ producto }) {
   return (
     <div className="flex-1 w-full flex items-center justify-center p-4 sm:px-6 lg:px-8 font-quicksand overflow-hidden">
       <div className="max-w-6xl w-full max-h-full flex flex-col md:flex-row bg-[#F2E4C9] shadow-2xl overflow-hidden rounded-sm">
-        <div className="w-full md:w-1/2 h-64 md:h-auto relative flex-shrink-0">
+        <div className="w-full md:w-1/2 h-64 md:h-auto relative flex-shrink-0 group">
           <div className="w-full h-full relative">
             {sinStock && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
@@ -136,13 +149,46 @@ export default function ProdDetalle({ producto }) {
                 </span>
               </div>
             )}
+
             <img
-              src={imagenMostrada}
+              src={imagenesMostradas[imagenIndex]}
               alt={`${producto.nombre} ${colorElegido}`}
               className={`w-full h-full object-cover transition-all duration-300 ${
                 sinStock ? "opacity-60 grayscale" : ""
               }`}
             />
+
+            {imagenesMostradas.length > 1 && (
+              <>
+                <button
+                  onClick={prevImg}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2F4A2F] p-2 rounded-full shadow-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                  aria-label="Imagen anterior"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={nextImg}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2F4A2F] p-2 rounded-full shadow-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                  aria-label="Imagen siguiente"
+                >
+                  <ChevronRight size={20} />
+                </button>
+
+                <div className="absolute bottom-4 left-0 w-full flex justify-center gap-2 z-10">
+                  {imagenesMostradas.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === imagenIndex
+                          ? "w-5 bg-[#8B5E3C]"
+                          : "w-2 bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -227,7 +273,7 @@ export default function ProdDetalle({ producto }) {
 
           <div className="text-[#2F4A2F] text-sm leading-relaxed">
             <h3 className="font-bold mb-2">Descripción del producto:</h3>
-            <p className="opacity-90">
+            <p className="opacity-90 whitespace-pre-wrap">
               {producto.descripcion ||
                 "Un mate artesanal único para acompañar tus mejores momentos. Fabricado con materiales de primera calidad y diseño exclusivo de Orilla Mates."}
             </p>

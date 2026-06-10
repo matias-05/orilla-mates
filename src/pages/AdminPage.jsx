@@ -19,6 +19,7 @@ import {
   UploadCloud,
   Tag,
   Image as ImageIcon,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -113,6 +114,15 @@ export default function AdminPage() {
       delete stockInicial["Único"];
     }
 
+    const safeImagenes = {};
+    if (prod.imagenes) {
+      for (const key in prod.imagenes) {
+        safeImagenes[key] = Array.isArray(prod.imagenes[key])
+          ? prod.imagenes[key]
+          : [prod.imagenes[key]];
+      }
+    }
+
     setEditForm({
       nombre: prod.nombre || "",
       precio: prod.precio || 0,
@@ -121,7 +131,7 @@ export default function AdminPage() {
       descripcion: prod.descripcion || "",
       stock: stockInicial,
       colores: prod.colores || [],
-      imagenes: prod.imagenes || {},
+      imagenes: safeImagenes,
     });
   };
 
@@ -155,17 +165,31 @@ export default function AdminPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    toast.info(`Subiendo foto para color ${color}...`);
+    toast.info(`Subiendo foto para ${color}...`);
     try {
       const url = await uploadToCloudinary(file);
-      setEditForm((prev) => ({
-        ...prev,
-        imagenes: { ...(prev.imagenes || {}), [color]: url },
-      }));
-      toast.success(`¡Foto de ${color} lista!`);
+      setEditForm((prev) => {
+        const arrExistente = prev.imagenes[color] || [];
+        return {
+          ...prev,
+          imagenes: { ...prev.imagenes, [color]: [...arrExistente, url] },
+        };
+      });
+      toast.success(`¡Foto agregada a ${color}!`);
     } catch (error) {
-      toast.error(`Error al subir la foto de ${color}`);
+      toast.error(`Error al subir la foto`);
     }
+  };
+
+  const handleRemoveColorImage = (color, indexToRemove) => {
+    setEditForm((prev) => {
+      const arrCopy = [...(prev.imagenes[color] || [])];
+      arrCopy.splice(indexToRemove, 1);
+      return {
+        ...prev,
+        imagenes: { ...prev.imagenes, [color]: arrCopy },
+      };
+    });
   };
 
   const handleAddColor = () => {
@@ -185,6 +209,7 @@ export default function AdminPage() {
       ...prev,
       colores: [...prev.colores, colorCapitalized],
       stock: { ...prev.stock, [colorCapitalized]: 0 },
+      imagenes: { ...prev.imagenes, [colorCapitalized]: [] },
     }));
     setNuevoColor("");
   };
@@ -220,16 +245,20 @@ export default function AdminPage() {
 
       let finalStock = { ...editForm.stock };
       let finalColores = editForm.colores;
-      let finalImagenes = editForm.imagenes;
+      let finalImagenes = { ...editForm.imagenes };
 
       if (tipoColor === "unico") {
         const stockValor = editForm.stock.Unico ?? editForm.stock.Único ?? 0;
         finalStock = { Unico: Number(stockValor) };
         finalColores = [];
-        finalImagenes = {};
+        finalImagenes =
+          finalImagenes["Unico"] && finalImagenes["Unico"].length > 0
+            ? { Unico: finalImagenes["Unico"] }
+            : {};
       } else {
         delete finalStock["Unico"];
         delete finalStock["Único"];
+        delete finalImagenes["Unico"];
       }
 
       const dataToSave = {
@@ -325,7 +354,7 @@ export default function AdminPage() {
             >
               <PlusCircle size={20} />
               <span className="font-bold tracking-wider text-sm">
-                Nuevo Producto
+                Nuevo Mate
               </span>
             </button>
           </div>
@@ -520,7 +549,7 @@ export default function AdminPage() {
             <div className="space-y-4 overflow-y-auto max-h-[65vh] px-2 custom-scrollbar">
               <div className="mb-4">
                 <label className="text-[10px] uppercase font-black text-[#2F4A2F]/40 mb-2 block">
-                  Foto Principal
+                  Foto Principal (Portada)
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-[#2F4A2F]/30 bg-white flex items-center justify-center overflow-hidden shrink-0">
@@ -546,7 +575,7 @@ export default function AdminPage() {
                       htmlFor="file-upload"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#2F4A2F] border border-[#2F4A2F]/20 rounded-xl font-bold text-sm cursor-pointer hover:bg-black/5 transition-colors shadow-sm"
                     >
-                      <UploadCloud size={16} /> Subir principal
+                      <UploadCloud size={16} /> Cambiar Portada
                     </label>
                   </div>
                 </div>
@@ -660,23 +689,62 @@ export default function AdminPage() {
                 </div>
 
                 {tipoColor === "unico" ? (
-                  <div>
-                    <label className="text-[9px] uppercase font-bold text-[#2F4A2F]/40 mb-1 block">
-                      Cantidad Stock Color Único
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={editForm.stock.Unico ?? editForm.stock.Único ?? 0}
-                      onChange={(e) => {
-                        const val = Math.max(0, Number(e.target.value));
-                        setEditForm({
-                          ...editForm,
-                          stock: { Unico: val },
-                        });
-                      }}
-                      className="w-32 px-4 py-2 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none"
-                    />
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <label className="text-[9px] uppercase font-bold text-[#2F4A2F]/40 block w-32">
+                        Stock Único
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          editForm.stock.Unico ?? editForm.stock.Único ?? 0
+                        }
+                        onChange={(e) => {
+                          const val = Math.max(0, Number(e.target.value));
+                          setEditForm({
+                            ...editForm,
+                            stock: { Unico: val },
+                          });
+                        }}
+                        className="w-24 px-4 py-2 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none text-center"
+                      />
+                    </div>
+                    <div className="border-t border-black/5 pt-3">
+                      <p className="text-[10px] font-bold text-[#2F4A2F]/60 mb-2 uppercase">
+                        Fotos Extras (Carrusel)
+                      </p>
+                      <div className="flex gap-2 flex-wrap items-center">
+                        {(editForm.imagenes["Unico"] || []).map((url, i) => (
+                          <div key={i} className="relative group">
+                            <img
+                              src={url}
+                              className="w-12 h-12 rounded border object-cover shadow-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveColorImage("Unico", i)}
+                              className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X size={10} />
+                            </button>
+                          </div>
+                        ))}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleColorImageUpload("Unico", e)}
+                          className="hidden"
+                          id="upload-Unico"
+                        />
+                        <label
+                          htmlFor="upload-Unico"
+                          className="w-12 h-12 rounded border border-dashed border-gray-400 flex items-center justify-center cursor-pointer hover:bg-black/5 transition-colors"
+                        >
+                          <PlusCircle size={14} className="text-gray-400" />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -698,70 +766,93 @@ export default function AdminPage() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-3 mt-2 max-h-56 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-1 gap-3 mt-2 max-h-72 overflow-y-auto pr-1">
                       {editForm.colores.map((color) => (
                         <div
                           key={color}
-                          className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white/60 p-3 rounded-xl border border-white gap-3"
+                          className="flex flex-col bg-white/60 p-4 rounded-xl border border-white gap-3 shadow-sm"
                         >
-                          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-                            <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2 text-sm w-32">
+                          <div className="flex items-center justify-between border-b border-black/5 pb-2">
+                            <span className="capitalize text-[#2F4A2F] font-bold flex items-center gap-2 text-sm">
                               <Package size={14} className="text-[#8B5E3C]" />
                               {color}
                             </span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={editForm.stock[color] || 0}
-                              onChange={(e) => {
-                                const val = Math.max(0, Number(e.target.value));
-                                setEditForm({
-                                  ...editForm,
-                                  stock: {
-                                    ...editForm.stock,
-                                    [color]: val,
-                                  },
-                                });
-                              }}
-                              className="w-16 text-center font-black text-[#8B5E3C] bg-white rounded p-2 outline-none shadow-inner"
-                            />
+                            <div className="flex items-center gap-4">
+                              <label className="text-[10px] font-bold text-[#2F4A2F]/50">
+                                STOCK:
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={editForm.stock[color] || 0}
+                                onChange={(e) => {
+                                  const val = Math.max(
+                                    0,
+                                    Number(e.target.value),
+                                  );
+                                  setEditForm({
+                                    ...editForm,
+                                    stock: {
+                                      ...editForm.stock,
+                                      [color]: val,
+                                    },
+                                  });
+                                }}
+                                className="w-16 text-center font-black text-[#8B5E3C] bg-white rounded p-1 outline-none shadow-inner"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveColor(color)}
+                                className="text-red-400 hover:text-red-600 transition-colors ml-2"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                            {editForm.imagenes?.[color] ? (
-                              <img
-                                src={editForm.imagenes[color]}
-                                alt={color}
-                                className="w-10 h-10 rounded border object-cover"
+                          <div>
+                            <p className="text-[9px] uppercase font-bold text-[#2F4A2F]/40 mb-2">
+                              Fotos del Color (Carrusel)
+                            </p>
+                            <div className="flex gap-2 flex-wrap items-center">
+                              {(editForm.imagenes[color] || []).map(
+                                (url, i) => (
+                                  <div key={i} className="relative group">
+                                    <img
+                                      src={url}
+                                      className="w-12 h-12 rounded border object-cover shadow-sm"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleRemoveColorImage(color, i)
+                                      }
+                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X size={10} />
+                                    </button>
+                                  </div>
+                                ),
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  handleColorImageUpload(color, e)
+                                }
+                                className="hidden"
+                                id={`upload-${color}`}
                               />
-                            ) : (
-                              <div className="w-10 h-10 rounded border border-dashed border-gray-400 flex items-center justify-center">
-                                <ImageIcon
+                              <label
+                                htmlFor={`upload-${color}`}
+                                className="w-12 h-12 rounded border border-dashed border-[#2F4A2F]/30 flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
+                              >
+                                <PlusCircle
                                   size={14}
-                                  className="text-gray-400"
+                                  className="text-[#2F4A2F]/40"
                                 />
-                              </div>
-                            )}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleColorImageUpload(color, e)}
-                              className="hidden"
-                              id={`upload-${color}`}
-                            />
-                            <label
-                              htmlFor={`upload-${color}`}
-                              className="text-[10px] font-bold bg-[#8B5E3C]/10 text-[#8B5E3C] px-3 py-2 rounded-lg cursor-pointer hover:bg-[#8B5E3C]/20 transition-colors"
-                            >
-                              Subir foto
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveColor(color)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                              </label>
+                            </div>
                           </div>
                         </div>
                       ))}
