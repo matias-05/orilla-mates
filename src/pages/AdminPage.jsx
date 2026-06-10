@@ -42,7 +42,7 @@ export default function AdminPage() {
     imagen: "",
     categoria: "Mates",
     descripcion: "",
-    stock: { Único: 0 },
+    stock: { Unico: 0 },
     colores: [],
     imagenes: {},
   });
@@ -82,7 +82,7 @@ export default function AdminPage() {
       imagen: "",
       categoria: "Mates",
       descripcion: "",
-      stock: { Único: 0 },
+      stock: { Unico: 0 },
       colores: [],
       imagenes: {},
     });
@@ -97,12 +97,19 @@ export default function AdminPage() {
     const esVariantes = prod.colores && prod.colores.length > 0;
     setTipoColor(esVariantes ? "varios" : "unico");
 
-    let stockInicial =
-      typeof prod.stock === "object"
-        ? { ...prod.stock }
-        : { Único: prod.stock || 0 };
+    let stockInicial = {};
+    if (typeof prod.stock === "object") {
+      stockInicial = { ...prod.stock };
+      if (stockInicial["Único"] !== undefined) {
+        stockInicial["Unico"] = stockInicial["Único"];
+        delete stockInicial["Único"];
+      }
+    } else {
+      stockInicial = { Unico: prod.stock || 0 };
+    }
 
     if (esVariantes) {
+      delete stockInicial["Unico"];
       delete stockInicial["Único"];
     }
 
@@ -210,15 +217,18 @@ export default function AdminPage() {
         ? editForm.categoria.charAt(0).toUpperCase() +
           editForm.categoria.slice(1).toLowerCase()
         : "Mates";
+
       let finalStock = { ...editForm.stock };
       let finalColores = editForm.colores;
       let finalImagenes = editForm.imagenes;
 
       if (tipoColor === "unico") {
-        finalStock = { Único: editForm.stock.Único || 0 };
+        const stockValor = editForm.stock.Unico ?? editForm.stock.Único ?? 0;
+        finalStock = { Unico: Number(stockValor) };
         finalColores = [];
         finalImagenes = {};
       } else {
+        delete finalStock["Unico"];
         delete finalStock["Único"];
       }
 
@@ -315,88 +325,91 @@ export default function AdminPage() {
             >
               <PlusCircle size={20} />
               <span className="font-bold tracking-wider text-sm">
-                Nuevo Mate
+                Nuevo Producto
               </span>
             </button>
           </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 md:hidden">
-          {productosFiltrados.map((prod) => (
-            <div
-              key={prod.id}
-              className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-white shadow-lg space-y-3"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex gap-3">
-                  <img
-                    src={prod.imagen || "/logo-orilla.png"}
-                    className="w-14 h-14 rounded-2xl object-cover bg-white shadow-sm"
-                  />
-                  <div>
-                    <h3 className="font-bold text-[#2F4A2F] text-lg leading-tight">
-                      {prod.nombre}
-                    </h3>
-                    <p className="text-[#8B5E3C] font-black text-xl mt-1">
-                      ${Number(prod.precio).toLocaleString()}
-                    </p>
+          {productosFiltrados.map((prod) => {
+            const stockUnico =
+              typeof prod.stock === "object"
+                ? (prod.stock?.Unico ?? prod.stock?.Único ?? 0)
+                : prod.stock || 0;
+
+            return (
+              <div
+                key={prod.id}
+                className="bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-white shadow-lg space-y-3"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex gap-3">
+                    <img
+                      src={prod.imagen || "/logo-orilla.png"}
+                      className="w-14 h-14 rounded-2xl object-cover bg-white shadow-sm"
+                    />
+                    <div>
+                      <h3 className="font-bold text-[#2F4A2F] text-lg leading-tight">
+                        {prod.nombre}
+                      </h3>
+                      <p className="text-[#8B5E3C] font-black text-xl mt-1">
+                        ${Number(prod.precio).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => handleEditClick(prod)}
+                      className="bg-[#2F4A2F] text-white p-2 rounded-xl shadow-md active:scale-90 transition-transform"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(prod.id, prod.nombre)}
+                      className="bg-red-100 text-red-600 p-2 rounded-xl border border-red-200 shadow-sm active:scale-90 transition-transform"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => handleEditClick(prod)}
-                    className="bg-[#2F4A2F] text-white p-2 rounded-xl shadow-md active:scale-90 transition-transform"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(prod.id, prod.nombre)}
-                    className="bg-red-100 text-red-600 p-2 rounded-xl border border-red-200 shadow-sm active:scale-90 transition-transform"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-black/5">
+                  {prod.colores && prod.colores.length > 0 ? (
+                    prod.colores.map((color) => {
+                      const cant = prod.stock?.[color] || 0;
+                      return (
+                        <span
+                          key={color}
+                          className="px-2 py-1 bg-white border border-[#2F4A2F]/10 rounded-xl text-[10px] font-bold shadow-sm"
+                        >
+                          {color.toUpperCase()}:{" "}
+                          <span
+                            className={
+                              cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
+                            }
+                          >
+                            {cant}
+                          </span>
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="px-2 py-1 bg-white border border-[#2F4A2F]/10 rounded-xl text-[10px] font-bold shadow-sm">
+                      STOCK:{" "}
+                      <span
+                        className={
+                          stockUnico <= 3 ? "text-red-500" : "text-[#8B5E3C]"
+                        }
+                      >
+                        {stockUnico}
+                      </span>
+                    </span>
+                  )}
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-black/5">
-                {prod.colores && prod.colores.length > 0 ? (
-                  prod.colores.map((color) => {
-                    const cant = prod.stock?.[color] || 0;
-                    return (
-                      <span
-                        key={color}
-                        className="px-2 py-1 bg-white border border-[#2F4A2F]/10 rounded-xl text-[10px] font-bold shadow-sm"
-                      >
-                        {color.toUpperCase()}:{" "}
-                        <span
-                          className={
-                            cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
-                          }
-                        >
-                          {cant}
-                        </span>
-                      </span>
-                    );
-                  })
-                ) : (
-                  <span className="px-2 py-1 bg-white border border-[#2F4A2F]/10 rounded-xl text-[10px] font-bold shadow-sm">
-                    STOCK:{" "}
-                    <span
-                      className={
-                        (prod.stock?.Único ?? prod.stock) <= 3
-                          ? "text-red-500"
-                          : "text-[#8B5E3C]"
-                      }
-                    >
-                      {typeof prod.stock === "object"
-                        ? prod.stock?.Único || 0
-                        : prod.stock || 0}
-                    </span>
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="hidden md:block bg-white/40 backdrop-blur-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/50">
@@ -410,80 +423,87 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#2F4A2F]/5 text-sm">
-              {productosFiltrados.map((prod) => (
-                <tr
-                  key={prod.id}
-                  className="hover:bg-white/60 transition-colors"
-                >
-                  <td className="p-4 flex items-center gap-3">
-                    <img
-                      src={prod.imagen || "/logo-orilla.png"}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                    <span className="font-bold text-[#2F4A2F]">
-                      {prod.nombre}
-                    </span>
-                  </td>
-                  <td className="p-6 text-[#8B5E3C] font-black text-base">
-                    ${Number(prod.precio).toLocaleString()}
-                  </td>
-                  <td className="p-6">
-                    <div className="flex flex-wrap gap-2">
-                      {prod.colores && prod.colores.length > 0 ? (
-                        prod.colores.map((color) => {
-                          const cant = prod.stock?.[color] || 0;
-                          return (
-                            <span
-                              key={color}
-                              className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm"
-                            >
-                              {color.toUpperCase()}:{" "}
+              {productosFiltrados.map((prod) => {
+                const stockUnico =
+                  typeof prod.stock === "object"
+                    ? (prod.stock?.Unico ?? prod.stock?.Único ?? 0)
+                    : prod.stock || 0;
+
+                return (
+                  <tr
+                    key={prod.id}
+                    className="hover:bg-white/60 transition-colors"
+                  >
+                    <td className="p-4 flex items-center gap-3">
+                      <img
+                        src={prod.imagen || "/logo-orilla.png"}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <span className="font-bold text-[#2F4A2F]">
+                        {prod.nombre}
+                      </span>
+                    </td>
+                    <td className="p-6 text-[#8B5E3C] font-black text-base">
+                      ${Number(prod.precio).toLocaleString()}
+                    </td>
+                    <td className="p-6">
+                      <div className="flex flex-wrap gap-2">
+                        {prod.colores && prod.colores.length > 0 ? (
+                          prod.colores.map((color) => {
+                            const cant = prod.stock?.[color] || 0;
+                            return (
                               <span
-                                className={
-                                  cant <= 3 ? "text-red-500" : "text-[#8B5E3C]"
-                                }
+                                key={color}
+                                className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm"
                               >
-                                {cant}
+                                {color.toUpperCase()}:{" "}
+                                <span
+                                  className={
+                                    cant <= 3
+                                      ? "text-red-500"
+                                      : "text-[#8B5E3C]"
+                                  }
+                                >
+                                  {cant}
+                                </span>
                               </span>
+                            );
+                          })
+                        ) : (
+                          <span className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm">
+                            STOCK:{" "}
+                            <span
+                              className={
+                                stockUnico <= 3
+                                  ? "text-red-500"
+                                  : "text-[#8B5E3C]"
+                              }
+                            >
+                              {stockUnico}
                             </span>
-                          );
-                        })
-                      ) : (
-                        <span className="px-3 py-1 bg-white/80 border border-[#2F4A2F]/10 rounded-full text-[10px] font-bold shadow-sm">
-                          STOCK:{" "}
-                          <span
-                            className={
-                              (prod.stock?.Único ?? prod.stock) <= 3
-                                ? "text-red-500"
-                                : "text-[#8B5E3C]"
-                            }
-                          >
-                            {typeof prod.stock === "object"
-                              ? prod.stock?.Único || 0
-                              : prod.stock || 0}
                           </span>
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-6 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleEditClick(prod)}
-                        className="bg-[#2F4A2F] text-white p-2.5 rounded-xl hover:bg-[#8B5E3C] shadow-md transition-colors"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(prod.id, prod.nombre)}
-                        className="bg-white text-red-500 p-2.5 rounded-xl border border-red-100 hover:bg-red-50 hover:text-red-600 shadow-sm transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-6 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleEditClick(prod)}
+                          className="bg-[#2F4A2F] text-white p-2.5 rounded-xl hover:bg-[#8B5E3C] shadow-md transition-colors"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(prod.id, prod.nombre)}
+                          className="bg-white text-red-500 p-2.5 rounded-xl border border-red-100 hover:bg-red-50 hover:text-red-600 shadow-sm transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -590,7 +610,8 @@ export default function AdminPage() {
                       <option value="Mates">Mates</option>
                       <option value="Termos">Termos</option>
                       <option value="Bombillas">Bombillas</option>
-                      <option value="Accesorios">Accesorios</option>
+                      <option value="Yerbas">Yerbas</option>
+                      <option value="Otros">Otros</option>
                     </select>
                   </div>
                 </div>
@@ -646,12 +667,12 @@ export default function AdminPage() {
                     <input
                       type="number"
                       min="0"
-                      value={editForm.stock.Único || 0}
+                      value={editForm.stock.Unico ?? editForm.stock.Único ?? 0}
                       onChange={(e) => {
                         const val = Math.max(0, Number(e.target.value));
                         setEditForm({
                           ...editForm,
-                          stock: { Único: val },
+                          stock: { Unico: val },
                         });
                       }}
                       className="w-32 px-4 py-2 bg-white rounded-xl shadow-inner font-bold text-[#2F4A2F] outline-none"
