@@ -53,8 +53,8 @@ export default function Productos() {
         <div
           className="
             absolute inset-0
-            bg-[url('/fondo-productos.webp')] 
-            md:bg-[url('/fondo-productos.webp')]
+            bg-[url('/fondo-productos.jpeg')] 
+            md:bg-[url('/fondo-productos.jpeg')]
             bg-center bg-no-repeat bg-cover
             opacity-50
             bg-scroll md:bg-fixed

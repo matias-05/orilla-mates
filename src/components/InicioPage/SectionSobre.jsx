@@ -34,22 +34,17 @@ export default function SectionSobre() {
       "
     >
       <style>{`
-        /* Clase base */
         .reveal-base {
           opacity: 0;
           transition: all 1s cubic-bezier(0.17, 0.55, 0.55, 1);
         }
 
-        /* 1. Definimos los estados iniciales PRIMERO */
         .start-zoom { transform: scale(0.9); }
         .start-up { transform: translateY(40px); }
-        /* Aquí está el que causaba problemas: */
         .start-rotate { transform: rotate(-10deg) scale(0.8); }
 
-        /* 2. Definimos el estado visible AL FINAL (para que tenga prioridad) */
         .reveal-visible {
           opacity: 1;
-          /* Esto ahora sí sobrescribe la rotación y endereza el logo */
           transform: translate(0) scale(1) rotate(0deg);
         }
       `}</style>
@@ -59,7 +54,7 @@ export default function SectionSobre() {
           <div
             className="
               absolute inset-0
-              bg-[url('/fondo-productos.webp')]
+              bg-[url('/fondo-productos.jpeg')]
               bg-center bg-no-repeat bg-cover
               opacity-50
               bg-scroll md:bg-fixed

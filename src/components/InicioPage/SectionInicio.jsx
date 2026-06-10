@@ -28,7 +28,7 @@ export default function SectionInicio() {
           }
         }
         .animate-enter {
-          opacity: 0; /* Comienza invisible */
+          opacity: 0; 
           animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .animate-image {
@@ -79,13 +79,13 @@ export default function SectionInicio() {
 
       <div className="w-full md:w-1/2 h-[35vh] md:h-full order-1 md:order-2 shrink-0 md:shrink overflow-hidden">
         <img
-          src="/foto-inicio.webp"
+          src="/foto-inicio2.jpeg"
           alt="Colección de Mates Orilla en exhibición"
           width="800"
           height="600"
           fetchPriority="high"
           loading="eager"
-          className="w-full h-full object-cover object-center animate-image"
+          className="w-full h-full object-cover object-right animate-image"
         />
       </div>
     </section>
