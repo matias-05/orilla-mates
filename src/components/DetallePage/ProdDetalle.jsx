@@ -50,6 +50,31 @@ export default function ProdDetalle({ producto }) {
   const [colorElegido, setColorElegido] = useState(coloresDisponibles[0] || "");
   const [imagenIndex, setImagenIndex] = useState(0);
 
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      nextImg();
+    }
+    if (isRightSwipe) {
+      prevImg();
+    }
+  };
+
   useEffect(() => {
     setImagenIndex(0);
   }, [colorElegido]);
@@ -98,6 +123,10 @@ export default function ProdDetalle({ producto }) {
       arrFotos = [baseImg];
     }
 
+    if (colorElegido === "" && arrFotos[0] !== producto.imagen) {
+      arrFotos.unshift(producto.imagen);
+    }
+
     return arrFotos;
   }, [colorElegido, producto.imagen, producto.imagenes]);
 
@@ -141,7 +170,12 @@ export default function ProdDetalle({ producto }) {
     <div className="flex-1 w-full flex items-center justify-center p-4 sm:px-6 lg:px-8 font-quicksand overflow-hidden">
       <div className="max-w-6xl w-full max-h-full flex flex-col md:flex-row bg-[#F2E4C9] shadow-2xl overflow-hidden rounded-sm">
         <div className="w-full md:w-1/2 h-64 md:h-auto relative flex-shrink-0 group">
-          <div className="w-full h-full relative">
+          <div
+            className="w-full h-full relative"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             {sinStock && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
                 <span className="bg-[#8B5E3C] text-[#F2E4C9] text-sm font-bold uppercase tracking-widest px-8 py-4 border border-[#F2E4C9]/30">
@@ -155,21 +189,21 @@ export default function ProdDetalle({ producto }) {
               alt={`${producto.nombre} ${colorElegido}`}
               className={`w-full h-full object-cover transition-all duration-300 ${
                 sinStock ? "opacity-60 grayscale" : ""
-              }`}
+              } pointer-events-none select-none`}
             />
 
             {imagenesMostradas.length > 1 && (
               <>
                 <button
                   onClick={prevImg}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2F4A2F] p-2 rounded-full shadow-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2F4A2F] p-2 rounded-full shadow-md transition-all opacity-50 sm:opacity-0 group-hover:opacity-100 active:opacity-100 z-10"
                   aria-label="Imagen anterior"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
                   onClick={nextImg}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2F4A2F] p-2 rounded-full shadow-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-[#2F4A2F] p-2 rounded-full shadow-md transition-all opacity-50 sm:opacity-0 group-hover:opacity-100 active:opacity-100 z-10"
                   aria-label="Imagen siguiente"
                 >
                   <ChevronRight size={20} />
@@ -179,7 +213,7 @@ export default function ProdDetalle({ producto }) {
                   {imagenesMostradas.map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1.5 rounded-full transition-all ${
+                      className={`h-1.5 rounded-full transition-all shadow-sm ${
                         i === imagenIndex
                           ? "w-5 bg-[#8B5E3C]"
                           : "w-2 bg-white/70"
@@ -192,7 +226,7 @@ export default function ProdDetalle({ producto }) {
           </div>
         </div>
 
-        <div className="w-full md:w-1/2 flex flex-col p-6 md:p-10 overflow-y-auto justify-center">
+        <div className="w-full md:w-1/2 flex flex-col p-6 md:p-10 overflow-y-auto justify-start">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-belleza text-[#2F4A2F] mb-4 tracking-wide">
             {producto.nombre}
           </h1>
