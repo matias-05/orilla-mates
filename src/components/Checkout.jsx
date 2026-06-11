@@ -146,7 +146,7 @@ export const Checkout = () => {
                 Espere, se están procesando los datos.
               </p>
               <p className="font-quicksand text-[#2F4A2F]/60  italic">
-                (Esto puede llevar varios segundos no salga del navegador)
+                (Esto puede llevar 20 segundos aproximadamente)
               </p>
             </div>
           </div>
