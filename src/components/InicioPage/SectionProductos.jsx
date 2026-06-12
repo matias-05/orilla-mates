@@ -54,10 +54,9 @@ export default function Productos() {
           className="
             absolute inset-0
             bg-[url('/fondo-productos.jpeg')] 
-            md:bg-[url('/fondo-productos.jpeg')]
             bg-center bg-no-repeat bg-cover
             opacity-50
-            bg-scroll md:bg-fixed
+            bg-fixed
           "
         />
         <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
