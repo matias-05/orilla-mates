@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { db } from "../firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import ProdDetalle from "../components/DetallePage/ProdDetalle";
@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default function DetallePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,12 +61,12 @@ export default function DetallePage() {
   return (
     <div className="bg-[#2F4A2F] h-[calc(100dvh-80px)] flex flex-col overflow-hidden">
       <div className="pt-4 px-4 sm:px-8 max-w-6xl mx-auto w-full shrink-0">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-[#E8D6B3] hover:text-white transition-colors text-sm font-bold tracking-wider uppercase"
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-[#E8D6B3] hover:text-white transition-colors text-sm font-bold tracking-wider uppercase cursor-pointer"
         >
           <ArrowLeft size={16} /> Volver
-        </Link>
+        </button>
       </div>
       <ProdDetalle producto={producto} />
     </div>
