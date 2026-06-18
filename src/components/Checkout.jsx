@@ -18,6 +18,17 @@ export const Checkout = () => {
       if (!cart || cart.length === 0) return;
 
       try {
+        localStorage.setItem(
+          "pedido_orilla_temp",
+          JSON.stringify({
+            items: cart,
+            total: total,
+            esEfectivo: false,
+            metodoEntrega: metodoEntrega,
+            direccion: direccion,
+          }),
+        );
+
         const response = await fetch(
           "https://orilla-mates-backend.onrender.com/create_preference",
           {
@@ -45,7 +56,7 @@ export const Checkout = () => {
     };
 
     createPreference();
-  }, [cart]);
+  }, [cart, total, metodoEntrega, direccion]);
 
   const initialization = useMemo(() => {
     if (!preferenceId || !total) return null;

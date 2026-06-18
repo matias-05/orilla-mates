@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
   MessageCircle,
   Check,
@@ -13,18 +13,34 @@ import { toast } from "sonner";
 const CompraExitosa = () => {
   const { clearCart } = useCart();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [ticketEnviado, setTicketEnviado] = useState(false);
 
-  const { items, total, esEfectivo, metodoEntrega, direccion } =
-    location.state || {
+  const paymentId = searchParams.get("payment_id");
+  const statusMP = searchParams.get("status");
+
+  const ordenData = useMemo(() => {
+    if (location.state) return location.state;
+
+    try {
+      const localData = localStorage.getItem("pedido_orilla_temp");
+      if (localData) return JSON.parse(localData);
+    } catch (error) {
+      console.error("Error leyendo localStorage", error);
+    }
+
+    return {
       items: [],
       total: 0,
       esEfectivo: false,
       metodoEntrega: "",
       direccion: "",
     };
+  }, [location.state]);
 
+  const { items, total, esEfectivo, metodoEntrega, direccion } = ordenData;
   const TELEFONO_DUEÑO = import.meta.env.VITE_TELEFONO_DUENO;
 
   const esEnvio = useMemo(() => {
@@ -32,7 +48,8 @@ const CompraExitosa = () => {
     return metodo.includes("envi");
   }, [metodoEntrega]);
 
-  const hayDatosDeCompra = useMemo(() => items.length > 0, [items]);
+  const pagoAprobadoMP = statusMP === "approved" && paymentId;
+  const hayDatosDeCompra = items.length > 0 || pagoAprobadoMP;
 
   if (!hayDatosDeCompra || ticketEnviado) {
     return (
@@ -61,7 +78,7 @@ const CompraExitosa = () => {
     setIsProcessing(true);
 
     try {
-      if (esEfectivo) {
+      if (esEfectivo && items.length > 0) {
         const response = await fetch(
           "https://orilla-mates-backend.onrender.com/process_cash_order",
           {
@@ -73,45 +90,54 @@ const CompraExitosa = () => {
         if (!response.ok) throw new Error("Error al procesar el stock");
       }
 
-      const tituloPago = esEfectivo
-        ? "*Forma de pago:* Efectivo a coordinar"
-        : "*Forma de pago:* MercadoPago";
+      let mensajeFinal = "";
 
-      const infoEntrega = esEnvio
-        ? `*Forma de entrega:* Envío a domicilio\n*Dirección:* ${direccion || "A coordinar"}`
-        : "*Forma de entrega:* Retiro en *Tte. Miguel Gimenez 1446*";
+      if (items.length > 0) {
+        const tituloPago = esEfectivo
+          ? "*Forma de pago:* Efectivo a coordinar"
+          : `*Forma de pago:* MercadoPago\n*N° Comprobante:* ${paymentId || "Acreditado"}`;
 
-      const textoBase = `*¡Hola Orilla Mates!* ${esEfectivo ? "*Quiero realizar un pedido.*" : "*Acabo de realizar una compra.*"}\n\n`;
-      const textoEncabezado = `${tituloPago}\n${infoEntrega}\n`;
+        const infoEntrega = esEnvio
+          ? `*Forma de entrega:* Envío a domicilio\n*Dirección:* ${direccion || "A coordinar"}`
+          : "*Forma de entrega:* Retiro en *Tte. Miguel Gimenez 1446*";
 
-      let detalleItems = `\n*Detalle:*\n`;
-      items.forEach((item) => {
-        const mostrarColor =
-          item.colorSeleccionado && item.colorSeleccionado !== "Unico"
-            ? ` (${item.colorSeleccionado})`
-            : "";
-        detalleItems += `- ${item.nombre}${mostrarColor} x${item.cantidad}\n`;
-      });
+        const textoBase = `*¡Hola Orilla Mates!* ${esEfectivo ? "*Quiero realizar un pedido.*" : "*Acabo de realizar una compra.*"}\n\n`;
+        const textoEncabezado = `${tituloPago}\n${infoEntrega}\n`;
 
-      const textoTotal = `\n*Total: $${Number(total).toLocaleString("es-AR")}*`;
+        let detalleItems = `\n*Detalle:*\n`;
+        items.forEach((item) => {
+          const mostrarColor =
+            item.colorSeleccionado && item.colorSeleccionado !== "Unico"
+              ? ` (${item.colorSeleccionado})`
+              : "";
+          detalleItems += `- ${item.nombre}${mostrarColor} x${item.cantidad}\n`;
+        });
 
-      let coordinar = "";
-      if (esEfectivo && esEnvio) coordinar = "el pago y el envío";
-      else if (esEfectivo) coordinar = "el pago";
-      else if (esEnvio) coordinar = "el envío";
+        const textoTotal = `\n*Total: $${Number(total).toLocaleString("es-AR")}*`;
 
-      const textoCierre = coordinar
-        ? `\n\nQuedo a la espera para coordinar ${coordinar}. ¡Gracias!`
-        : `\n\nQuedo a la espera. ¡Gracias!`;
+        let coordinar = "";
+        if (esEfectivo && esEnvio) coordinar = "el pago y el envío";
+        else if (esEfectivo) coordinar = "el pago";
+        else if (esEnvio) coordinar = "el envío";
 
-      const mensajeFinal = encodeURIComponent(
-        textoBase + textoEncabezado + detalleItems + textoTotal + textoCierre,
-      );
+        const textoCierre = coordinar
+          ? `\n\nQuedo a la espera para coordinar ${coordinar}. ¡Gracias!`
+          : `\n\nQuedo a la espera para la entrega. ¡Gracias!`;
+
+        mensajeFinal = encodeURIComponent(
+          textoBase + textoEncabezado + detalleItems + textoTotal + textoCierre,
+        );
+      } else {
+        mensajeFinal = encodeURIComponent(
+          `*¡Hola Orilla Mates!* Acabo de realizar una compra por web mediante MercadoPago.\n\n*N° de Comprobante:* ${paymentId}\n\nTe escribo para coordinar los detalles. ¡Gracias!`,
+        );
+      }
 
       const telLimpio = TELEFONO_DUEÑO?.replace(/\D/g, "");
       const urlWhatsApp = `https://wa.me/${telLimpio}?text=${mensajeFinal}`;
 
       clearCart();
+      localStorage.removeItem("pedido_orilla_temp");
       setTicketEnviado(true);
       window.history.replaceState({}, document.title);
 
@@ -140,7 +166,7 @@ const CompraExitosa = () => {
 
         <div className="p-8">
           <p className="text-[#2F4A2F] text-l text-center mb-8 leading-relaxed tracking-wider">
-            Para finalizar su pedido, <br /> por favor envíe el ticket por
+            Para finalizar su pedido, <br /> por favor envíe el comprobante por
             WhatsApp
           </p>
 
@@ -159,50 +185,52 @@ const CompraExitosa = () => {
             </span>
           </button>
 
-          <div className="bg-[#F8F5F0] p-6 border-l-4 border-[#2F4A2F]">
-            <p className="text-[9px] uppercase tracking-[0.3em] text-[#2F4A2F]/40 mb-4 font-black">
-              Resumen de la Orden
-            </p>
-            <div className="space-y-3 mb-4">
-              {items.map((item, index) => (
-                <div key={index} className="flex justify-between items-start">
-                  <p className="text-[11px] text-[#2F4A2F] uppercase tracking-wide text-left">
-                    <span className="font-bold">{item.cantidad}x</span>{" "}
-                    {item.nombre}
-                    {item.colorSeleccionado &&
-                      item.colorSeleccionado !== "Unico" && (
-                        <span className="block text-[9px] opacity-50">
-                          {item.colorSeleccionado}
-                        </span>
-                      )}
+          {items.length > 0 && (
+            <div className="bg-[#F8F5F0] p-6 border-l-4 border-[#2F4A2F]">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-[#2F4A2F]/40 mb-4 font-black">
+                Resumen de la Orden
+              </p>
+              <div className="space-y-3 mb-4">
+                {items.map((item, index) => (
+                  <div key={index} className="flex justify-between items-start">
+                    <p className="text-[11px] text-[#2F4A2F] uppercase tracking-wide text-left">
+                      <span className="font-bold">{item.cantidad}x</span>{" "}
+                      {item.nombre}
+                      {item.colorSeleccionado &&
+                        item.colorSeleccionado !== "Unico" && (
+                          <span className="block text-[9px] opacity-50">
+                            {item.colorSeleccionado}
+                          </span>
+                        )}
+                    </p>
+                    <p className="text-[11px] font-bold text-[#2F4A2F]">
+                      ${(item.precio * item.cantidad).toLocaleString("es-AR")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {esEnvio && (
+                <div className="flex justify-between items-center pt-3 mb-2 ">
+                  <p className="text-[14px] text-[#2F4A2F] font-bold tracking-tight">
+                    Envío
                   </p>
-                  <p className="text-[11px] font-bold text-[#2F4A2F]">
-                    ${(item.precio * item.cantidad).toLocaleString("es-AR")}
+                  <p className="text-[14px] text-[#2F4A2F]/70 italic tracking-tighter text-right">
+                    {direccion ? `Destino: ${direccion}` : "Precio a coordinar"}
                   </p>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {esEnvio && (
-              <div className="flex justify-between items-center pt-3 mb-2 ">
-                <p className="text-[14px] text-[#2F4A2F] font-bold tracking-tight">
-                  Envío
-                </p>
-                <p className="text-[14px] text-[#2F4A2F]/70 italic tracking-tighter text-right">
-                  {direccion ? `Destino: ${direccion}` : "Precio a coordinar"}
-                </p>
+              <div className="border-t border-[#2F4A2F] mt-2 pt-4 flex justify-between items-center">
+                <span className="font-belleza text-lg text-[#2F4A2F] tracking-widest uppercase">
+                  Total
+                </span>
+                <span className="text-xl font-bold text-[#2F4A2F] font-belleza">
+                  ${total.toLocaleString("es-AR")}
+                </span>
               </div>
-            )}
-
-            <div className="border-t border-[#2F4A2F] mt-2 pt-4 flex justify-between items-center">
-              <span className="font-belleza text-lg text-[#2F4A2F] tracking-widest uppercase">
-                Total
-              </span>
-              <span className="text-xl font-bold text-[#2F4A2F] font-belleza">
-                ${total.toLocaleString("es-AR")}
-              </span>
             </div>
-          </div>
+          )}
 
           <Link
             to="/"
