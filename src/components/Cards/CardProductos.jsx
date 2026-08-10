@@ -35,26 +35,30 @@ const obtenerStockColor = (stock, colorName) => {
   return 0;
 };
 
+// 🔥 Extraemos esta función para poder ordenar los productos antes de mostrarlos
+const calcularTotalStock = (stock) => {
+  if (!stock) return 0;
+  if (typeof stock === "number") return stock;
+  if (typeof stock === "string") return parseInt(stock, 10) || 0;
+  if (typeof stock === "object") {
+    return Object.values(stock).reduce(
+      (acc, curr) => acc + (Number(curr) || 0),
+      0,
+    );
+  }
+  return 0;
+};
+
 function ProductoItem({ prod }) {
   const navigate = useNavigate();
   const coloresDisponibles = prod.colores || [];
 
   const [colorElegido, setColorElegido] = useState(coloresDisponibles[0] || "");
 
-  const totalStock = useMemo(() => {
-    const stock = prod.stock;
-    if (!stock) return 0;
-    if (typeof stock === "number") return stock;
-    if (typeof stock === "string") return parseInt(stock, 10) || 0;
-    if (typeof stock === "object") {
-      return Object.values(stock).reduce(
-        (acc, curr) => acc + (Number(curr) || 0),
-        0,
-      );
-    }
-    return 0;
-  }, [prod.stock]);
-
+  const totalStock = useMemo(
+    () => calcularTotalStock(prod.stock),
+    [prod.stock],
+  );
   const sinStockGeneral = totalStock <= 0;
 
   const imagenMostrada = useMemo(() => {
@@ -96,28 +100,25 @@ function ProductoItem({ prod }) {
   }, [colorElegido, prod.imagen, prod.imagenes]);
 
   return (
-    <div
-      className={`flex flex-col shadow-xl transition-all duration-300 overflow-hidden h-full bg-[#2F4A2F] ${
-        sinStockGeneral ? "opacity-80 grayscale-[0.8]" : "hover:scale-[1.02]"
-      }`}
-    >
+    // 🔥 Quitamos el filtro gris y la opacidad del contenedor principal
+    <div className="flex flex-col shadow-xl transition-all duration-300 overflow-hidden h-full bg-[#2F4A2F] hover:scale-[1.02]">
       <div className="bg-[#617A67] p-4 relative">
-        {sinStockGeneral && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-            <span className="bg-[#8B5E3C] text-[#F2E4C9] text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] px-6 py-3 border border-[#F2E4C9]/30 shadow-2xl animate-pulse">
-              Agotado
-            </span>
-          </div>
-        )}
-
         <div className="aspect-square w-full overflow-hidden bg-white/5 relative">
+          {/* 🔥 Nueva etiqueta de "Sin Stock" arriba a la derecha */}
+          {sinStockGeneral && (
+            <div className="absolute top-2 right-2 z-20">
+              <span className="bg-[#2F4A2F] text-[#F2E4C9] text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] px-3 py-1.5 border border-[#F2E4C9]/30 shadow-lg">
+                Sin Stock
+              </span>
+            </div>
+          )}
+
+          {/* 🔥 La imagen ya no tiene opacidad disminuida */}
           <img
             loading="lazy"
             src={imagenMostrada}
             alt={`${prod.nombre} - ${colorElegido || "General"}`}
-            className={`w-full h-full object-cover transition-all duration-300 ${
-              sinStockGeneral ? "opacity-40" : "opacity-100"
-            }`}
+            className="w-full h-full object-cover transition-all duration-300 opacity-100"
           />
         </div>
       </div>
@@ -132,13 +133,10 @@ function ProductoItem({ prod }) {
           </span>
         </div>
 
+        {/* 🔥 El botón vuelve a tener su diseño original siempre */}
         <button
           onClick={() => navigate(`/producto/${prod.id}`)}
-          className={`mt-auto py-3 px-8 cursor-pointer self-center text-sm font-medium tracking-wider w-full shadow-lg transition-all ${
-            sinStockGeneral
-              ? "bg-gray-600 text-[#F2E4C9] hover:bg-gray-500"
-              : "bg-[#8B5E3C] text-[#F2E4C9] hover:bg-[#a67148] hover:shadow-xl active:scale-95"
-          }`}
+          className="mt-auto py-3 px-8 cursor-pointer self-center text-sm font-medium tracking-wider w-full shadow-lg transition-all bg-[#8B5E3C] text-[#F2E4C9] hover:bg-[#a67148] hover:shadow-xl active:scale-95"
         >
           Ver Detalle
         </button>
@@ -174,10 +172,28 @@ export default function CardProductos({ categoria, filtro }) {
     if (categoria) obtenerProductos();
   }, [categoria]);
 
-  const productosFiltrados = productos.filter((prod) => {
-    if (!filtro || filtro === "Todos") return true;
-    return (prod.nombre || "").toLowerCase().includes(filtro.toLowerCase());
-  });
+  // 🔥 Filtramos y ORDENAMOS los productos para mandar los sin stock al final
+  const productosFiltradosYOrdenados = useMemo(() => {
+    const filtrados = productos.filter((prod) => {
+      if (!filtro || filtro === "Todos") return true;
+      return (prod.nombre || "").toLowerCase().includes(filtro.toLowerCase());
+    });
+
+    return filtrados.sort((a, b) => {
+      const stockA = calcularTotalStock(a.stock);
+      const stockB = calcularTotalStock(b.stock);
+
+      const sinStockA = stockA <= 0;
+      const sinStockB = stockB <= 0;
+
+      // Si A no tiene stock y B sí, A va al final
+      if (sinStockA && !sinStockB) return 1;
+      // Si A tiene stock y B no, A va primero
+      if (!sinStockA && sinStockB) return -1;
+
+      return 0; // Si ambos tienen o no tienen stock, mantienen su orden natural
+    });
+  }, [productos, filtro]);
 
   if (loading)
     return (
@@ -188,7 +204,7 @@ export default function CardProductos({ categoria, filtro }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10">
-      {productosFiltrados.map((prod) => (
+      {productosFiltradosYOrdenados.map((prod) => (
         <ProductoItem key={prod.id} prod={prod} />
       ))}
     </div>

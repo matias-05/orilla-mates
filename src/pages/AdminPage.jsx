@@ -26,6 +26,9 @@ import { toast } from "sonner";
 export default function AdminPage() {
   const [productos, setProductos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  // 🔥 Nuevo estado para el filtro de categorías
+  const [filterCategoria, setFilterCategoria] = useState("Todos");
+
   const [editingId, setEditingId] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,6 +39,15 @@ export default function AdminPage() {
 
   const [tipoColor, setTipoColor] = useState("unico");
   const [nuevoColor, setNuevoColor] = useState("");
+
+  const categoriasDisponibles = [
+    "Todos",
+    "Mates",
+    "Termos",
+    "Bombillas",
+    "Yerbas",
+    "Otros",
+  ];
 
   const [editForm, setEditForm] = useState({
     nombre: "",
@@ -66,11 +78,17 @@ export default function AdminPage() {
     fetchProductos();
   }, []);
 
+  // 🔥 Actualizamos el useMemo para filtrar por búsqueda Y por categoría
   const productosFiltrados = useMemo(() => {
-    return productos.filter((prod) =>
-      prod.nombre?.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [searchTerm, productos]);
+    return productos.filter((prod) => {
+      const matchBuscador = prod.nombre
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchCategoria =
+        filterCategoria === "Todos" || prod.categoria === filterCategoria;
+      return matchBuscador && matchCategoria;
+    });
+  }, [searchTerm, filterCategoria, productos]);
 
   const resetForm = () => {
     setImageFile(null);
@@ -325,7 +343,7 @@ export default function AdminPage() {
   return (
     <div className="bg-[#F2E4C9] min-h-screen p-4 md:p-12 font-quicksand">
       <div className="max-w-6xl mx-auto">
-        <header className="mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <header className="mb-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <h1 className="font-belleza text-3xl md:text-4xl text-[#2F4A2F]">
               Administración
@@ -350,7 +368,7 @@ export default function AdminPage() {
             </div>
             <button
               onClick={handleCreateNewClick}
-              className="flex items-center justify-center gap-2 bg-[#2F4A2F] text-[#F2E4C9] px-6 py-3 rounded-2xl shadow-md hover:bg-[#1f331f] transition-colors"
+              className="flex items-center justify-center gap-2 bg-[#2F4A2F] text-[#F2E4C9] px-6 py-3 rounded-2xl shadow-md hover:bg-[#1f331f] transition-colors shrink-0"
             >
               <PlusCircle size={20} />
               <span className="font-bold tracking-wider text-sm">
@@ -359,6 +377,23 @@ export default function AdminPage() {
             </button>
           </div>
         </header>
+
+        {/* 🔥 NAVEGADOR DE CATEGORÍAS */}
+        <div className="flex overflow-x-auto gap-3 pb-4 mb-4 custom-scrollbar">
+          {categoriasDisponibles.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategoria(cat)}
+              className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-sm font-bold tracking-wide transition-all duration-300 shadow-sm ${
+                filterCategoria === cat
+                  ? "bg-[#8B5E3C] text-[#F2E4C9] scale-105"
+                  : "bg-white/60 text-[#2F4A2F] hover:bg-white"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 gap-4 md:hidden">
           {productosFiltrados.map((prod) => {
@@ -439,6 +474,13 @@ export default function AdminPage() {
               </div>
             );
           })}
+
+          {/* 🔥 Mensaje si el filtro no da resultados */}
+          {productosFiltrados.length === 0 && (
+            <div className="text-center py-10 text-[#2F4A2F]/60 font-bold">
+              No hay productos en esta categoría.
+            </div>
+          )}
         </div>
 
         <div className="hidden md:block bg-white/40 backdrop-blur-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/50">
@@ -446,6 +488,7 @@ export default function AdminPage() {
             <thead>
               <tr className="bg-[#2F4A2F] text-[#F2E4C9] uppercase text-[10px] tracking-[0.2em]">
                 <th className="p-6">Producto</th>
+                <th className="p-6">Categoría</th>
                 <th className="p-6">Precio</th>
                 <th className="p-6">Stock por Variantes</th>
                 <th className="p-6 text-center">Acciones</th>
@@ -466,11 +509,15 @@ export default function AdminPage() {
                     <td className="p-4 flex items-center gap-3">
                       <img
                         src={prod.imagen || "/logo-orilla.png"}
-                        className="w-12 h-12 rounded-lg object-cover"
+                        className="w-12 h-12 rounded-lg object-cover bg-white"
                       />
                       <span className="font-bold text-[#2F4A2F]">
                         {prod.nombre}
                       </span>
+                    </td>
+                    {/* 🔥 Agregué la categoría a la tabla para mayor claridad visual */}
+                    <td className="p-6 text-[#2F4A2F]/60 font-bold">
+                      {prod.categoria || "Mates"}
                     </td>
                     <td className="p-6 text-[#8B5E3C] font-black text-base">
                       ${Number(prod.precio).toLocaleString()}
@@ -533,6 +580,16 @@ export default function AdminPage() {
                   </tr>
                 );
               })}
+              {productosFiltrados.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="text-center py-10 text-[#2F4A2F]/60 font-bold"
+                  >
+                    No hay productos en esta categoría.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
