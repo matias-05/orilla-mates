@@ -23,10 +23,23 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// 🔥 Función para calcular el stock total sumando todas las variantes
+const calcularTotalStock = (stock) => {
+  if (!stock) return 0;
+  if (typeof stock === "number") return stock;
+  if (typeof stock === "string") return parseInt(stock, 10) || 0;
+  if (typeof stock === "object") {
+    return Object.values(stock).reduce(
+      (acc, curr) => acc + (Number(curr) || 0),
+      0,
+    );
+  }
+  return 0;
+};
+
 export default function AdminPage() {
   const [productos, setProductos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  // 🔥 Nuevo estado para el filtro de categorías
   const [filterCategoria, setFilterCategoria] = useState("Todos");
 
   const [editingId, setEditingId] = useState(null);
@@ -78,15 +91,30 @@ export default function AdminPage() {
     fetchProductos();
   }, []);
 
-  // 🔥 Actualizamos el useMemo para filtrar por búsqueda Y por categoría
+  // 🔥 Filtramos y luego ORDENAMOS por stock (Mayor a menor, sin stock al final)
   const productosFiltrados = useMemo(() => {
-    return productos.filter((prod) => {
+    const filtrados = productos.filter((prod) => {
       const matchBuscador = prod.nombre
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchCategoria =
         filterCategoria === "Todos" || prod.categoria === filterCategoria;
       return matchBuscador && matchCategoria;
+    });
+
+    return filtrados.sort((a, b) => {
+      const stockA = calcularTotalStock(a.stock);
+      const stockB = calcularTotalStock(b.stock);
+
+      const sinStockA = stockA <= 0;
+      const sinStockB = stockB <= 0;
+
+      // 1. Los que no tienen stock van al fondo
+      if (sinStockA && !sinStockB) return 1;
+      if (!sinStockA && sinStockB) return -1;
+
+      // 2. Si ambos tienen stock, ordenamos de mayor a menor cantidad
+      return stockB - stockA;
     });
   }, [searchTerm, filterCategoria, productos]);
 
@@ -378,7 +406,6 @@ export default function AdminPage() {
           </div>
         </header>
 
-        {/* 🔥 NAVEGADOR DE CATEGORÍAS */}
         <div className="flex overflow-x-auto gap-3 pb-4 mb-4 custom-scrollbar">
           {categoriasDisponibles.map((cat) => (
             <button
@@ -475,7 +502,6 @@ export default function AdminPage() {
             );
           })}
 
-          {/* 🔥 Mensaje si el filtro no da resultados */}
           {productosFiltrados.length === 0 && (
             <div className="text-center py-10 text-[#2F4A2F]/60 font-bold">
               No hay productos en esta categoría.
@@ -515,7 +541,6 @@ export default function AdminPage() {
                         {prod.nombre}
                       </span>
                     </td>
-                    {/* 🔥 Agregué la categoría a la tabla para mayor claridad visual */}
                     <td className="p-6 text-[#2F4A2F]/60 font-bold">
                       {prod.categoria || "Mates"}
                     </td>
