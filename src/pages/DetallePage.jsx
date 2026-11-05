@@ -59,7 +59,8 @@ export default function DetallePage() {
   }
 
   return (
-    <div className="bg-[#2F4A2F] h-[calc(100dvh-80px)] flex flex-col overflow-hidden">
+    // 🔥 Cambiamos h-[...] overflow-hidden por min-h-[...] para habilitar el scroll único de toda la página
+    <div className="bg-[#2F4A2F] min-h-[calc(100dvh-80px)] flex flex-col">
       <div className="pt-4 px-4 sm:px-8 max-w-6xl mx-auto w-full shrink-0">
         <button
           onClick={() => navigate(-1)}

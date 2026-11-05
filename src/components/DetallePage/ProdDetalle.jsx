@@ -167,9 +167,12 @@ export default function ProdDetalle({ producto }) {
   };
 
   return (
-    <div className="flex-1 w-full h-full flex items-center justify-center p-4 sm:px-6 lg:px-8 font-quicksand overflow-hidden">
-      <div className="max-w-6xl w-full h-full md:h-auto md:max-h-[85vh] flex flex-col md:flex-row bg-[#F2E4C9] shadow-2xl rounded-sm overflow-hidden">
-        <div className="w-full md:w-1/2 h-[45%] md:h-auto md:min-h-[500px] relative flex-shrink-0 group bg-black">
+    // 🔥 Sin overflow-hidden ni alturas fijas: acompaña el scroll general y asegura fondo verde
+    <div className="flex-1 w-full flex items-center justify-center p-4 pb-10 sm:px-6 lg:px-8 font-quicksand bg-[#2F4A2F]">
+      <div className="max-w-6xl w-full flex flex-col md:flex-row bg-[#F2E4C9] shadow-2xl rounded-sm overflow-hidden">
+        {/* LADO IZQUIERDO: IMAGEN / CARRUSEL */}
+        {/* 🔥 aspect-square en mobile para que la foto no se achique ni colapse */}
+        <div className="w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[500px] relative flex-shrink-0 group bg-black">
           <div
             className="w-full h-full relative"
             onTouchStart={onTouchStart}
@@ -226,19 +229,21 @@ export default function ProdDetalle({ producto }) {
           </div>
         </div>
 
-        <div className="w-full md:w-1/2 h-[55%] md:h-auto flex flex-col p-5 sm:p-6 md:p-10 overflow-y-auto">
+        {/* LADO DERECHO: DETALLES */}
+        {/* 🔥 Sin overflow-y-auto ni h-[55%]: fluye con el scroll de toda la página */}
+        <div className="w-full md:w-1/2 flex flex-col p-5 sm:p-6 md:p-10">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-belleza text-[#2F4A2F] mb-4 tracking-wide">
             {producto.nombre}
           </h1>
 
-          <div className="text-2xl md:text-3xl text-[#2F4A2F] mb-6 flex-shrink-0">
+          <div className="text-2xl md:text-3xl text-[#2F4A2F] mb-6">
             ${Number(producto.precio).toLocaleString("es-AR")}
           </div>
 
-          <hr className="border-[#2F4A2F]/20 mb-6 flex-shrink-0" />
+          <hr className="border-[#2F4A2F]/20 mb-6" />
 
           {coloresDisponibles.length > 0 && (
-            <div className="mb-8 flex-shrink-0">
+            <div className="mb-8">
               <span className="block text-sm font-bold text-[#2F4A2F] mb-3">
                 Color:
               </span>
@@ -288,7 +293,7 @@ export default function ProdDetalle({ producto }) {
             </div>
           )}
 
-          <div className="mb-8 flex-shrink-0">
+          <div className="mb-8">
             <button
               onClick={handleAgregarAlCarrito}
               disabled={sinStock}
@@ -303,9 +308,9 @@ export default function ProdDetalle({ producto }) {
             </button>
           </div>
 
-          <hr className="border-[#2F4A2F]/20 mb-6 flex-shrink-0" />
+          <hr className="border-[#2F4A2F]/20 mb-6" />
 
-          <div className="text-[#2F4A2F] text-sm leading-relaxed pb-4">
+          <div className="text-[#2F4A2F] text-sm leading-relaxed pb-2">
             <h3 className="font-bold mb-2">Descripción del producto:</h3>
             <p className="opacity-90 whitespace-pre-wrap">
               {producto.descripcion ||

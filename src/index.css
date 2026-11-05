@@ -11,3 +11,10 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
 }
+
+body,
+#root {
+  background-color: #2f4a2f;
+  margin: 0;
+  padding: 0;
+}
