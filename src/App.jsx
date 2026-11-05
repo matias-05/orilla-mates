@@ -43,7 +43,7 @@ function App() {
             className: "my-toast-class",
           }}
         />
-        <div className="min-h-screen bg-[#fcf9f5]">
+        <main className="min-h-screen bg-[#fcf9f5]">
           <Navbar />
 
           <Suspense fallback={<PageLoader />}>
@@ -68,7 +68,7 @@ function App() {
               />
             </Routes>
           </Suspense>
-        </div>
+        </main>
       </CartProvider>
     </HelmetProvider>
   );
